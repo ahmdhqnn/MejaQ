@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MejaQ</string>
+    <string name="simpan">Simpan</string>
+    <string name="kembali">Kembali</string>
+    <string name="login">Pilih akun</string>
+    <string name="lainnya">Opsi lainnya</string>
+    <string name="logout">Logout</string>
+</resources>

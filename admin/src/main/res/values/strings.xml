@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MejaQ</string>
+    <string name="tambah_event">Tambah Event!</string>
+    <string name="tambah_menu">Tambah Menu</string>
+    <string name="simpan">Simpan</string>
+    <string name="kembali">Kembali</string>
+</resources>

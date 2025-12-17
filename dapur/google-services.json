@@ -1,0 +1,161 @@
+{
+  "project_info": {
+    "project_number": "526117852050",
+    "project_id": "mejaq-8fec6",
+    "storage_bucket": "mejaq-8fec6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:526117852050:android:437e77af45a918ef73674b",
+        "android_client_info": {
+          "package_name": "org.d3ifcool.admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "526117852050-og0mecou0od9ec1d95p6b0ht2e76gtqm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.d3ifcool.admin",
+            "certificate_hash": "afa2eae6cc965084335c98f08812b676f7c5d069"
+          }
+        },
+        {
+          "client_id": "526117852050-qnmkveqdat80io1u2bm2g1egs4frnp41.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.d3ifcool.admin",
+            "certificate_hash": "eb97299cc26597391b777d84bdbff596c6f66a42"
+          }
+        },
+        {
+          "client_id": "526117852050-sm8i76evtkmdl7btgknvkp00p08n3e6v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.d3ifcool.admin",
+            "certificate_hash": "1c3113746b42b38dcac8818d113a2c6ad21fabbf"
+          }
+        },
+        {
+          "client_id": "526117852050-ap14jhbctee9b7rpsmjh7qa5m6fduah3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOkSGg7oB35KmUTpGrw-HnLVHiHUYDMO8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "526117852050-ap14jhbctee9b7rpsmjh7qa5m6fduah3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:526117852050:android:3b71081c595af7a373674b",
+        "android_client_info": {
+          "package_name": "org.d3ifcool.mejaq"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "526117852050-9ioks1f8qln4umf4t5o8hnki84br9m2e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.d3ifcool.mejaq",
+            "certificate_hash": "1c3113746b42b38dcac8818d113a2c6ad21fabbf"
+          }
+        },
+        {
+          "client_id": "526117852050-ueqmmtkf4emmjbp30e3k8bms9s961oj5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.d3ifcool.mejaq",
+            "certificate_hash": "eb97299cc26597391b777d84bdbff596c6f66a42"
+          }
+        },
+        {
+          "client_id": "526117852050-v454i5vfhu51s8q14rtao8p1lh18cbs1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.d3ifcool.mejaq",
+            "certificate_hash": "afa2eae6cc965084335c98f08812b676f7c5d069"
+          }
+        },
+        {
+          "client_id": "526117852050-ap14jhbctee9b7rpsmjh7qa5m6fduah3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOkSGg7oB35KmUTpGrw-HnLVHiHUYDMO8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "526117852050-ap14jhbctee9b7rpsmjh7qa5m6fduah3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:526117852050:android:364ddb374c64f94573674b",
+        "android_client_info": {
+          "package_name": "rg.d3ifcool.dapur"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "526117852050-0t7mo84u244nvubp167k4edhocuakglh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "rg.d3ifcool.dapur",
+            "certificate_hash": "afa2eae6cc965084335c98f08812b676f7c5d069"
+          }
+        },
+        {
+          "client_id": "526117852050-7e83hn413cft3k20ltc0s6kdnf66tr7h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "rg.d3ifcool.dapur",
+            "certificate_hash": "eb97299cc26597391b777d84bdbff596c6f66a42"
+          }
+        },
+        {
+          "client_id": "526117852050-ap14jhbctee9b7rpsmjh7qa5m6fduah3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOkSGg7oB35KmUTpGrw-HnLVHiHUYDMO8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "526117852050-ap14jhbctee9b7rpsmjh7qa5m6fduah3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
