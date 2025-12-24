@@ -17,13 +17,13 @@ appcompat = "1.7.1"
 material = "1.13.0"
 materialIconsExtended = "1.7.5"
 foundationLayout = "1.9.4"
-firebaseBom="33.4.0"
+firebaseBom="33.7.0"
 firebaseUiAuth="7.2.0"
 coilCompose="2.7.0"
 googleServices="4.4.2"
 
 [libraries]
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version. ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -41,12 +41,13 @@ androidx-lifecycle-viewmodel-compose={group = "androidx.lifecycle",name="lifecyc
 androidx-navigation-compose = {group="androidx.navigation",name="navigation-compose",version.ref="navCompose"}
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
-coil-compose={module="io.coil-kt:coil-compose", version.ref="coilCompose"}
+coil-compose={module="io.coil-kt: coil-compose", version.ref="coilCompose"}
 
 # Firebase
 firebase-bom = {module ="com.google.firebase:firebase-bom", version.ref="firebaseBom"}
-firebase-firestore={module="com.google.firebase:firebase-firestore"}
-firebase-storage={module="com.google.firebase:firebase-storage"}
+firebase-firestore={module="com.google.firebase:firebase-firestore-ktx"}
+firebase-storage={module="com.google.firebase:firebase-storage-ktx"}
+firebase-auth={module="com.google.firebase:firebase-auth-ktx"}
 firebase-ui-auth={module="com.firebaseui:firebase-ui-auth", version.ref="firebaseUiAuth"}
 
 #Camera X
@@ -59,7 +60,7 @@ com-google-zxing-core = { module = "com.google.zxing:core", version.ref = "zXing
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
 
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "compose" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-appcompat = { group = "androidx. appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
@@ -67,4 +68,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-google-services ={id ="com.google.gms.google-services",version.ref="googleServices"}
+google-services ={id ="com.google.gms.google-services",version. ref="googleServices"}
