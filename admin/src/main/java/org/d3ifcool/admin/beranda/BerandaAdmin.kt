@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,36 +31,53 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font. FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.d3ifcool.admin.R
 import org.d3ifcool.admin.navigation.Screen
 import org.d3ifcool.admin.ui.theme.MejaQTheme
+import org.d3ifcool.shared.viewmodel.AuthViewModel
+import org.d3ifcool.shared.viewmodel.DashboardViewModel
+import org.d3ifcool.shared.viewmodel.MenuViewModel
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BerandaAdmin(navController: NavHostController) {
+fun BerandaAdmin(
+    navController: NavHostController,
+    authViewModel: AuthViewModel = viewModel(),
+    dashboardViewModel: DashboardViewModel = viewModel(),
+    menuViewModel: MenuViewModel = viewModel()
+) {
+    val authState by authViewModel.uiState.collectAsState()
+    val dashboardState by dashboardViewModel.uiState.collectAsState()
+    val menuState by menuViewModel. uiState.collectAsState()
+
     Scaffold(
         containerColor = Color(0xFFFDFDFE),
         topBar = {
             TopAppBar(
                 title = {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier. fillMaxWidth(),
+                        horizontalArrangement = Arrangement. End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.logo_mejaq),
+                            painter = painterResource(id = R.drawable. logo_mejaq),
                             contentDescription = "Logo MejaQ",
                             modifier = Modifier
                                 .size(120.dp)
@@ -74,15 +92,48 @@ fun BerandaAdmin(navController: NavHostController) {
             )
         }
     ) { innerPadding ->
-        BerandaContent(
-            modifier = Modifier.padding(innerPadding),
-            navController = navController
-        )
+        if (dashboardState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFFD61355))
+            }
+        } else {
+            BerandaContent(
+                modifier = Modifier. padding(innerPadding),
+                navController = navController,
+                userName = authState.userData?.name ?: "Admin",
+                totalRevenue = dashboardState.totalRevenue,
+                activeEventsCount = dashboardState.activeEventsCount,
+                weeklyRevenue = dashboardState. weeklyRevenue,
+                topMenus = menuState.topMenus,
+                onLogout = {
+                    authViewModel.signOut()
+                    navController. navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun BerandaContent(modifier: Modifier = Modifier, navController: NavHostController) {
+fun BerandaContent(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    userName: String,
+    totalRevenue: Int,
+    activeEventsCount: Int,
+    weeklyRevenue: List<org.d3ifcool.shared.viewmodel.DailyRevenue>,
+    topMenus: List<org.d3ifcool.shared.model.Menu>,
+    onLogout: () -> Unit
+) {
+    val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -91,49 +142,51 @@ fun BerandaContent(modifier: Modifier = Modifier, navController: NavHostControll
     ) {
         item {
             Text(
-                text = "Selamat datang, Admin!",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black
+                text = "Selamat datang, $userName!",
+                style = MaterialTheme.typography.titleLarge. copy(fontWeight = FontWeight.Bold),
+                color = Color. Black
             )
 
             Text(
                 text = "Berikut adalah ringkasan aktivitas Anda.",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme. typography.bodyMedium,
                 color = Color.Gray
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-
+            // Summary Cards dengan data real-time
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier. fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
             ) {
                 SummaryCard(
                     title = "Saldo",
-                    value = "Rp 12.5M",
+                    value = formatter.format(totalRevenue).replace("Rp", "Rp "),
                     backgroundColor = Color(0xFFFFE0E6)
                 )
                 SummaryCard(
                     title = "Event Aktif",
-                    value = "3",
+                    value = activeEventsCount.toString(),
                     backgroundColor = Color(0xFFD4F4DD)
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            GrafikPenjualan()
+            // Grafik dengan data real-time
+            GrafikPenjualan(weeklyRevenue = weeklyRevenue)
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            StatistikMenuFavorit()
+            // Menu Favorit dengan data real-time
+            StatistikMenuFavorit(topMenus = topMenus)
 
             Spacer(modifier = Modifier.height(30.dp))
 
             Text(
                 text = "Menu Utama",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                style = MaterialTheme.typography.titleMedium. copy(fontWeight = FontWeight. SemiBold)
             )
 
             Spacer(modifier = Modifier.height(50.dp))
@@ -146,24 +199,31 @@ fun BerandaContent(modifier: Modifier = Modifier, navController: NavHostControll
                 ) {
                     MenuButton(
                         title = "Input Menu",
-                        icon = Icons.Default.Edit,
-                        onClick = {navController.navigate(Screen.Menu.route)})
+                        icon = Icons. Default.Edit,
+                        onClick = { navController.navigate(Screen.Menu.route) }
+                    )
                     MenuButton(
                         title = "Pendapatan",
-                        icon = Icons.AutoMirrored.Filled.List,
-                        onClick ={navController.navigate(Screen.Keuangan.route)})
+                        icon = Icons.AutoMirrored. Filled.List,
+                        onClick = { navController.navigate(Screen.Keuangan.route) }
+                    )
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier. height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
                 ) {
                     MenuButton(
                         title = "Tambah Event",
-                        icon = Icons.Default.Add,
+                        icon = Icons. Default.Add,
                         onClick = { navController.navigate(Screen.Event.route) }
                     )
-                    MenuButton("Logout", Icons.AutoMirrored.Filled.ExitToApp, Color(0xFFFFCDD2))
+                    MenuButton(
+                        title = "Logout",
+                        icon = Icons. AutoMirrored.Filled. ExitToApp,
+                        background = Color(0xFFFFCDD2),
+                        onClick = onLogout
+                    )
                 }
             }
         }
@@ -180,7 +240,7 @@ fun SummaryCard(title: String, value: String, backgroundColor: Color) {
             .padding(16.dp)
     ) {
         Column(
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement. SpaceBetween,
             modifier = Modifier.fillMaxHeight()
         ) {
             Column {
@@ -191,9 +251,10 @@ fun SummaryCard(title: String, value: String, backgroundColor: Color) {
                 )
                 Text(
                     text = value,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = Color.Black,
+                    maxLines = 1
                 )
             }
         }
@@ -213,7 +274,7 @@ fun MenuButton(
             .height(100.dp)
             .background(background, shape = RoundedCornerShape(12.dp))
             .clickable { onClick() },
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment. Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(icon, contentDescription = title, tint = Color(0xFF7E57C2))
@@ -221,8 +282,9 @@ fun MenuButton(
         }
     }
 }
+
 @Composable
-fun GrafikPenjualan() {
+fun GrafikPenjualan(weeklyRevenue: List<org.d3ifcool.shared.viewmodel.DailyRevenue>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,9 +296,8 @@ fun GrafikPenjualan() {
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             color = Color.Black
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier. height(16.dp))
 
-        // MPAndroidChart
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -244,36 +305,62 @@ fun GrafikPenjualan() {
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.Bottom
         ) {
+            // Calculate max for scaling
+            val maxRevenue = weeklyRevenue.maxOfOrNull { it.revenue } ?: 1
 
-            val salesData = listOf(0.4f, 0.7f, 0.5f, 0.6f, 0.6f, 0.3f, 0.8f)
-            val labels = listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
+            if (weeklyRevenue.isEmpty()) {
+                // Default data jika belum ada transaksi
+                val defaultLabels = listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
+                defaultLabels.forEach { label ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement. Bottom,
+                        modifier = Modifier. height(120.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(10.dp)
+                                .background(
+                                    Color(0xFFE0E0E0),
+                                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+                                )
+                        )
+                        Spacer(modifier = Modifier. height(4.dp))
+                        Text(label, fontSize = 10.sp, color = Color.Gray)
+                    }
+                }
+            } else {
+                weeklyRevenue.forEach { daily ->
+                    val fraction = if (maxRevenue > 0) {
+                        (daily.revenue. toFloat() / maxRevenue).coerceIn(0.05f, 1f)
+                    } else 0.05f
 
-            salesData.forEachIndexed { index, fraction ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Bottom,
-                    modifier = Modifier.height(120.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(24.dp)
-                            .fillMaxHeight(fraction)
-                            .background(
-                                Color(0xFF7E57C2),
-                                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
-                            )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(labels[index], fontSize = 10.sp, color = Color.Gray)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Bottom,
+                        modifier = Modifier.height(120.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(24.dp)
+                                .fillMaxHeight(fraction)
+                                .background(
+                                    Color(0xFF7E57C2),
+                                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+                                )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(daily.dayName, fontSize = 10.sp, color = Color.Gray)
+                    }
                 }
             }
         }
-
     }
 }
 
 @Composable
-fun StatistikMenuFavorit() {
+fun StatistikMenuFavorit(topMenus:  List<org.d3ifcool.shared.model.Menu>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -287,9 +374,21 @@ fun StatistikMenuFavorit() {
         )
         Spacer(modifier = Modifier.height(12.dp))
 
-        MenuItemRow(rank = 1, name = "Nasi Goreng Spesial", sold = 120)
-        MenuItemRow(rank = 2, name = "Ayam Bakar Madu", sold = 98)
-        MenuItemRow(rank = 3, name = "Es Teh Manis", sold = 75)
+        if (topMenus.isEmpty()) {
+            Text(
+                text = "Belum ada data menu",
+                style = MaterialTheme. typography.bodyMedium,
+                color = Color.Gray
+            )
+        } else {
+            topMenus.forEachIndexed { index, menu ->
+                MenuItemRow(
+                    rank = index + 1,
+                    name = menu.name,
+                    sold = menu.soldCount
+                )
+            }
+        }
     }
 }
 
@@ -303,7 +402,7 @@ fun MenuItemRow(rank: Int, name: String, sold: Int) {
     ) {
         Text(
             text = "$rank.",
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme. typography.bodyMedium. copy(fontWeight = FontWeight. Bold),
             color = Color.Black,
             modifier = Modifier.width(24.dp)
         )
@@ -316,7 +415,7 @@ fun MenuItemRow(rank: Int, name: String, sold: Int) {
         Text(
             text = "$sold Terjual",
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
+            color = Color. Gray
         )
     }
 }
