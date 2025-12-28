@@ -28,7 +28,7 @@ fun SuccessScreen(navController: NavHostController) {
     // Auto kembali setelah 2 detik
     LaunchedEffect(Unit) {
         delay(2000)
-        navController.navigate(Screen.Home.route)  // kembali ke DapurMainScreen
+        navController.navigate(Screen.Home.route)
     }
 
     Box(

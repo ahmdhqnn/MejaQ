@@ -55,7 +55,10 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.coil.compose)
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(project(":shared"))
+
 
     // Firebase
     implementation(platform(libs.firebase.bom))
@@ -65,9 +68,15 @@ dependencies {
     implementation(libs.firebase.ui.auth)
 
     //CameraX
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
+    // CameraX (FINAL & STABLE)
+    implementation("androidx.camera:camera-core:1.3.4")
+    implementation("androidx.camera:camera-camera2:1.3.4")
+    implementation("androidx.camera:camera-lifecycle:1.3.4")
+    implementation("androidx.camera:camera-view:1.3.4")
+    implementation("com.google.guava:guava:33.3.0-android")
+
+
+
 
     //ZXing
     implementation(libs.com.google.zxing.core)

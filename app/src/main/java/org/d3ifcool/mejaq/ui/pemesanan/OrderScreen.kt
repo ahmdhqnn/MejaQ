@@ -1,176 +1,149 @@
 package org.d3ifcool.mejaq.ui.pemesanan
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import org.d3ifcool.mejaq.R
+import coil.compose.AsyncImage
 import org.d3ifcool.mejaq.navigation.Screen
 import org.d3ifcool.shared.model.Menu
-import org.d3ifcool.shared.screen.LayoutPage
+import org.d3ifcool.shared.viewmodel.MenuViewModel
+import org.d3ifcool.shared.viewmodel.PesananViewModel
 
-const val KEY_TABLE_NUMBER = "tableNumber"
+private val Merah = Color(0xFFD61355)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderScreen(
     navController: NavHostController,
     tableNumber: String?,
-    viewModel: MainViewModel = viewModel()
+    menuViewModel: MenuViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    pesananViewModel: PesananViewModel
 ) {
+    val uiState by menuViewModel.uiState.collectAsState()
+
+    var expanded by remember { mutableStateOf(false) }
+    var selectedMeja by remember { mutableStateOf(tableNumber ?: "1") }
+
+
     Scaffold(
-        containerColor = Color(0xFFFDFDFE),
-        topBar = {
-            TopAppBar(
-                title = {
-                    LayoutPage(navController = navController)
-                },
-                colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = Color(0xFFFDFDFE),
-                    titleContentColor = Color(0xFFD61355)
-                )
-            )
+        bottomBar = {
+            Button(
+                onClick = { navController.navigate(Screen.Cart.route) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Merah)
+            ) {
+                Text("Lihat Keranjang (${pesananViewModel.cartItems.size})")
+            }
         }
-    ) { innerPadding ->
+    ) { padding ->
+
         Column(
             modifier = Modifier
-                .padding(innerPadding)
-                .padding(8.dp)
-                .fillMaxSize()
+                .padding(padding)
+                .padding(12.dp)
         ) {
 
-            if (tableNumber != null) {
-                Text(
-                    text = "Meja $tableNumber",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded }
+            ) {
+                OutlinedTextField(
+                    value = "Meja $selectedMeja",
+                            onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Nomor Meja") },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
                 )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    (1..5).forEach {
+                        DropdownMenuItem(
+                            text = { Text("Meja $it") },
+                            onClick = {
+                                selectedMeja = it.toString()
+                                expanded = false
+                            }
+                        )
+                    }
+                }
             }
 
+            Spacer(Modifier.height(12.dp))
+
+            // ===== MENU GRID =====
             LazyVerticalGrid(
-                modifier = Modifier.fillMaxSize(),
-                columns = GridCells.Adaptive(180.dp),
+                columns = GridCells.Adaptive(160.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(viewModel.data) { menu ->
-                    MenuGridItem(
-                        menu = menu,
-                        onAddClick = {
-                            // TODO: tambah ke keranjang
-                        },
-                        onDetailClick = {
-                            navController.navigate(
-                                Screen.DetailMenu.createRoute(menu.id)
-                            )
-                        }
-                    )
+                items(uiState.menus) { menu ->
+                    MenuCard(menu, pesananViewModel)
                 }
             }
         }
     }
 }
 
-
 @Composable
-fun MenuGridItem(
+private fun MenuCard(
     menu: Menu,
-    onAddClick: () -> Unit,
-    onDetailClick: () -> Unit
+    viewModel: PesananViewModel
 ) {
-    val formatter = java.text.NumberFormat.getCurrencyInstance(
-        java.util.Locale("id", "ID")
-    )
+    var qty by remember { mutableStateOf(1) }
+    var note by remember { mutableStateOf("") }
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onDetailClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        border = BorderStroke(1.dp, DividerDefaults.color),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+    Card {
+        Column(Modifier.padding(12.dp)) {
 
-            Image(
-                painter = painterResource(id = menu.imageUrl),
+            AsyncImage(
+                model = menu.imageUrl,
                 contentDescription = menu.name,
                 modifier = Modifier
-                    .height(100.dp)
                     .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.medium),
-                contentScale = ContentScale.Crop
+                    .height(120.dp)
             )
 
-            Text(
-                text = menu.name,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                maxLines = 1,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-
-            Text(
-                text = menu.description,
-                fontSize = 10.sp,
-                color = Color.Gray,
-                maxLines = 1
-            )
+            Text(menu.name, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            Text("Rp ${menu.price}", color = Merah)
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = formatter.format(menu.price),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                IconButton(onClick = { if (qty > 1) qty-- }) { Text("-") }
+                Text(qty.toString())
+                IconButton(onClick = { qty++ }) { Text("+") }
+            }
 
-                IconButton(
-                    onClick = onAddClick,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(
-                            Color(0xFFD61355),
-                            shape = CircleShape
-                        )
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = stringResource(R.string.tambah_pesan),
-                        tint = Color.White
-                    )
-                }
+            OutlinedTextField(
+                value = note,
+                onValueChange = { note = it },
+                label = { Text("Catatan") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Button(
+                onClick = {
+                    viewModel.addToCart(menu, qty, note)
+                    qty = 1
+                    note = ""
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Merah)
+            ) {
+                Text("Tambah")
             }
         }
     }
