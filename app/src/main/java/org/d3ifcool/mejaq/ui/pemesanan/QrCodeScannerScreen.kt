@@ -31,16 +31,13 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -69,6 +66,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
+import com.google.common.util.concurrent.ListenableFuture
 import org.d3ifcool.mejaq.R
 import org.d3ifcool.mejaq.navigation.Screen
 
@@ -167,37 +165,42 @@ fun QrScanner(data: (String) -> Unit, modifier: Modifier) {
     }
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val cameraProviderFuture = remember {
+    val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> = remember {
         ProcessCameraProvider.getInstance(context)
     }
 
-    AndroidView(factory = { it ->
-        val previewView = PreviewView(it)
-        val preview = Preview.Builder().build()
-        val selector = CameraSelector.Builder()
-            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-            .build()
-        preview.surfaceProvider = previewView.surfaceProvider
-        val imageAnalysis = ImageAnalysis.Builder()
-            .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
-            .build()
+    AndroidView(factory = { ctx ->
+        val previewView = PreviewView(ctx)
+        val executor = ContextCompat.getMainExecutor(ctx)
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+            val preview = Preview.Builder().build()
+            val selector = CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build()
+            preview.setSurfaceProvider(previewView.surfaceProvider)
+            val imageAnalysis = ImageAnalysis.Builder()
+                .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
+                .build()
 
-        imageAnalysis.setAnalyzer(
-            ContextCompat.getMainExecutor(it),
-            QrCodeAnalyzer { it ->
-                result = it
-            }
-        )
-        try {
-            cameraProviderFuture.get().bindToLifecycle(
-                lifecycleOwner,
-                selector,
-                preview,
-                imageAnalysis
+            imageAnalysis.setAnalyzer(
+                executor,
+                QrCodeAnalyzer { it ->
+                    result = it
+                }
             )
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    selector,
+                    preview,
+                    imageAnalysis
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }, executor)
         previewView
     },
         modifier = modifier
