@@ -20,7 +20,7 @@ fun SetupNavGraph(
     user: FirebaseUser,
     navController: NavHostController = rememberNavController()
 ) {
-    // 🔥 SHARED VIEWMODEL
+
     val pesananViewModel: PesananViewModel = viewModel()
 
     NavHost(
@@ -49,20 +49,31 @@ fun SetupNavGraph(
             )
         }
 
+
+
         composable(Screen.Cart.route) {
             CartScreen(
                 navController = navController,
-                tableNumber = null,
                 viewModel = pesananViewModel
             )
         }
 
-        // ✅🔥 INI YANG HILANG → RIWAYAT
+        composable(Screen.DetailMenu.route,
+            arguments = listOf(navArgument("menuId") {
+                type = NavType.StringType
+            })
+        ) {
+            DetailMenuScreen(
+                navController = navController,
+                menuId = it.arguments!!.getString("menuId")!!,
+                pesananViewModel = pesananViewModel // 🔥 SHARED
+            )
+        }
+
         composable(Screen.Riwayat.route) {
             RiwayatScreen(navController)
         }
 
-        // ✅🔥 INI YANG HILANG → DETAIL EVENT
         composable(
             route = Screen.DetailEvent.route,
             arguments = listOf(navArgument("eventId") {
@@ -78,6 +89,7 @@ fun SetupNavGraph(
         composable(Screen.Success.route) {
             SuccessScreen(navController)
         }
+
     }
 }
 

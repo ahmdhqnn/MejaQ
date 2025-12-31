@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import org.d3ifcool.mejaq.navigation.Screen
@@ -21,14 +22,16 @@ private val Merah = Color(0xFFD61355)
 fun OrderScreen(
     navController: NavHostController,
     tableNumber: String?,
-    menuViewModel: MenuViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    menuViewModel: MenuViewModel = viewModel(),
     pesananViewModel: PesananViewModel
 ) {
     val uiState by menuViewModel.uiState.collectAsState()
 
-    var expanded by remember { mutableStateOf(false) }
-    var selectedMeja by remember { mutableStateOf(tableNumber ?: "1") }
-
+    LaunchedEffect(tableNumber) {
+        tableNumber?.let {
+            pesananViewModel.setMeja(it)
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -37,7 +40,9 @@ fun OrderScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Merah)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD61355)
+                )
             ) {
                 Text("Lihat Keranjang (${pesananViewModel.cartItems.size})")
             }
@@ -45,56 +50,43 @@ fun OrderScreen(
     ) { padding ->
 
         Column(
-            modifier = Modifier
+            Modifier
                 .padding(padding)
                 .padding(12.dp)
         ) {
 
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
-                OutlinedTextField(
-                    value = "Meja $selectedMeja",
-                            onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Nomor Meja") },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
+            val selectedMeja by pesananViewModel.selectedMeja.collectAsState()
 
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    (1..5).forEach {
-                        DropdownMenuItem(
-                            text = { Text("Meja $it") },
-                            onClick = {
-                                selectedMeja = it.toString()
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
+            OutlinedTextField(
+                value = "Meja $selectedMeja",
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Nomor Meja") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(Modifier.height(12.dp))
 
-            // ===== MENU GRID =====
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(160.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(uiState.menus) { menu ->
-                    MenuCard(menu, pesananViewModel)
+                    MenuGridItem(
+                        menu = menu,
+                        onClick = {
+                            navController.navigate(
+                                Screen.DetailMenu.createRoute(menu.id)
+                            )
+                        }
+                    )
                 }
             }
         }
     }
 }
+
 
 @Composable
 private fun MenuCard(
