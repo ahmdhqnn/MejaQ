@@ -1,5 +1,6 @@
 package org.d3ifcool.shared.viewmodel
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.d3ifcool.shared.model.ItemMenu
+import org.d3ifcool.shared.model.Menu
 import org.d3ifcool.shared.model.Pesanan
 import org.d3ifcool.shared.model.Transaksi
 import org.d3ifcool.shared.repository.FirestoreRepository
@@ -18,17 +20,54 @@ data class PesananUiState(
     val pendingPesanan: List<Pesanan> = emptyList(),
     val completedPesanan: List<Pesanan> = emptyList(),
     val userPesanan: List<Pesanan> = emptyList(),
-    val selectedPesanan: Pesanan?  = null,
+    val selectedPesanan: Pesanan? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val successMessage: String? = null
+
 )
 
 class PesananViewModel : ViewModel() {
+
     private val firestoreRepository = FirestoreRepository()
+
 
     private val _uiState = MutableStateFlow(PesananUiState())
     val uiState: StateFlow<PesananUiState> = _uiState.asStateFlow()
+
+    private val _cartItems = mutableStateListOf<ItemMenu>()
+    val cartItems: List<ItemMenu> get() = _cartItems
+
+    private val _selectedMeja = MutableStateFlow("1")
+    val selectedMeja: StateFlow<String> = _selectedMeja.asStateFlow()
+
+    fun setMeja(meja: String) {
+        _selectedMeja.value = meja.filter { it.isDigit() }.ifEmpty { "1" }
+    }
+
+
+    fun addToCart(menu: Menu, qty: Int, note: String) {
+        _cartItems.add(
+            ItemMenu(
+                menuId = menu.id,
+                nama = menu.name,
+                imageUrl = menu.imageUrl,
+                catatan = note,
+                jumlah = qty,
+                harga = menu.price,
+                subtotal = menu.price * qty
+            )
+        )
+    }
+
+
+    fun clearCart() {
+        _cartItems.clear()
+    }
+
+    // =====================================================
+    // 📥 LOAD PESANAN
+    // =====================================================
 
     fun loadPendingPesanan() {
         viewModelScope.launch {
@@ -62,7 +101,11 @@ class PesananViewModel : ViewModel() {
         }
     }
 
-    fun selectPesanan(pesanan:  Pesanan) {
+    // =====================================================
+    // 🎯 SELECT PESANAN
+    // =====================================================
+
+    fun selectPesanan(pesanan: Pesanan) {
         _uiState.value = _uiState.value.copy(selectedPesanan = pesanan)
     }
 
@@ -71,52 +114,72 @@ class PesananViewModel : ViewModel() {
     }
 
     fun createPesanan(
-        userId:  String,
+        userId: String,
         namaPelanggan: String,
-        meja: String,
-        items: List<ItemMenu>
+        items: List<ItemMenu>,
+        pajak: Int = 2000
     ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
+            if (items.isEmpty()) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = "Keranjang masih kosong"
+                )
+                return@launch
+            }
+
             try {
-                val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("id", "ID"))
-                val timeFormat = SimpleDateFormat("HH:mm", Locale("id", "ID"))
+                val dateFormat =
+                    SimpleDateFormat("d MMMM yyyy", Locale("id", "ID"))
+                val timeFormat =
+                    SimpleDateFormat("HH:mm", Locale("id", "ID"))
                 val now = Date()
 
-                val totalHarga = items.sumOf { it.subtotal }
+                val subtotal = items.sumOf { it.subtotal }
+                val total = subtotal + pajak
 
                 val pesanan = Pesanan(
                     userId = userId,
                     namaPelanggan = namaPelanggan,
-                    meja = meja,
+                    meja = selectedMeja.value,
                     tanggal = dateFormat.format(now),
                     waktu = timeFormat.format(now),
                     daftarMenu = items,
-                    totalHarga = totalHarga,
+                    totalHarga = total,
                     status = "Pending"
                 )
 
-                val result = firestoreRepository.addPesanan(pesanan)
-                if (result.isSuccess) {
-                    _uiState.value = _uiState. value.copy(
-                        isLoading = false,
-                        successMessage = "Pesanan berhasil dibuat"
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Gagal membuat pesanan"
-                    )
-                }
+                firestoreRepository.addPesanan(pesanan)
+                clearCart()
+
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    successMessage = "Pesanan berhasil dibuat"
+                )
+
             } catch (e: Exception) {
-                _uiState.value = _uiState. value.copy(
+                _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     errorMessage = e.message
                 )
             }
         }
     }
+
+
+    fun updateCartItem(index: Int, qty: Int, note: String) {
+        if (index in _cartItems.indices) {
+            val item = _cartItems[index]
+            _cartItems[index] = item.copy(
+                jumlah = qty,
+                catatan = note,
+                subtotal = qty * item.harga
+            )
+        }
+    }
+
 
     fun updatePesananStatus(pesananId: String, newStatus: String) {
         viewModelScope.launch {
@@ -126,17 +189,14 @@ class PesananViewModel : ViewModel() {
                 val result = firestoreRepository.updatePesananStatus(pesananId, newStatus)
 
                 if (result.isSuccess) {
-                    // Jika status "Selesai", buat transaksi
                     if (newStatus == "Selesai") {
                         val pesanan = _uiState.value.pendingPesanan.find { it.id == pesananId }
                             ?: _uiState.value.selectedPesanan
 
-                        pesanan?.let {
-                            createTransaksiFromPesanan(it)
-                        }
+                        pesanan?.let { createTransaksiFromPesanan(it) }
                     }
 
-                    _uiState.value = _uiState.value. copy(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         successMessage = "Status pesanan berhasil diupdate"
                     )
@@ -147,7 +207,7 @@ class PesananViewModel : ViewModel() {
                     )
                 }
             } catch (e: Exception) {
-                _uiState. value = _uiState.value.copy(
+                _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     errorMessage = e.message
                 )

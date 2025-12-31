@@ -13,6 +13,7 @@ sealed class Screen(val route: String) {
 
     object Cart : Screen("cart")
 
+
     object Riwayat : Screen("riwayat")
 
     object Success : Screen("success")
@@ -23,7 +24,7 @@ sealed class Screen(val route: String) {
     }
 
     object DetailMenu : Screen("menu/detail/{menuId}") {
-        fun createRoute(menuId: String) =
-            "menu/detail/$menuId"
+        fun createRoute(menuId: String) = "menu/detail/$menuId"
     }
+
 }
