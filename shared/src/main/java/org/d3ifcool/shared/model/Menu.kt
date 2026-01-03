@@ -13,22 +13,15 @@ data class Menu(
     val quantity: Int = 0,
     val imageUrl: String = "",
     val category: String = "",
-    val isAvailable: Boolean = true,
-    val soldCount:  Int = 0,
+
+    // 🔥 FIX NAMA FIELD (HARUS SAMA DENGAN FIRESTORE)
+    val available: Boolean = true,
+
+    val soldCount: Int = 0,
     @ServerTimestamp
-    val createdAt: Timestamp?  = null  // Ubah dari Long ke Timestamp
+    val createdAt: Timestamp? = null
 ) {
-    // No-argument constructor untuk Firestore
     constructor() : this(
-        id = "",
-        name = "",
-        description = "",
-        price = 0,
-        quantity = 0,
-        imageUrl = "",
-        category = "",
-        isAvailable = true,
-        soldCount = 0,
-        createdAt = null
+        "", "", "", 0, 0, "", "", true, 0, null
     )
 }

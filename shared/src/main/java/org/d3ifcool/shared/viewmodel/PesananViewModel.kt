@@ -180,6 +180,21 @@ class PesananViewModel : ViewModel() {
         }
     }
 
+    fun removeCartItem(index: Int): ItemMenu? {
+        return if (index in _cartItems.indices) {
+            _cartItems.removeAt(index)
+        } else null
+    }
+
+    fun restoreCartItem(index: Int, item: ItemMenu) {
+        if (index <= _cartItems.size) {
+            _cartItems.add(index, item)
+        } else {
+            _cartItems.add(item)
+        }
+    }
+
+
 
     fun updatePesananStatus(pesananId: String, newStatus: String) {
         viewModelScope.launch {

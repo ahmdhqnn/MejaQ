@@ -13,7 +13,7 @@ data class Event(
     val eventDate: String = "",
     val eventTime:  String = "",
     val location: String = "",
-    val isActive: Boolean = true,
+    val active: Boolean = true,
     @ServerTimestamp
     val createdAt: Timestamp? = null
 ) {
@@ -25,7 +25,7 @@ data class Event(
         eventDate = "",
         eventTime = "",
         location = "",
-        isActive = true,
+        active = true,
         createdAt = null
     )
 }

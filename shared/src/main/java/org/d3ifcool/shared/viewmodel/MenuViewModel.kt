@@ -18,8 +18,9 @@ data class MenuUiState(
     val successMessage: String? = null
 )
 
-class MenuViewModel :  ViewModel() {
-    private val firestoreRepository = FirestoreRepository()
+class MenuViewModel : ViewModel() {
+
+    private val repository = FirestoreRepository()
 
     private val _uiState = MutableStateFlow(MenuUiState())
     val uiState: StateFlow<MenuUiState> = _uiState.asStateFlow()
@@ -32,8 +33,8 @@ class MenuViewModel :  ViewModel() {
     private fun loadMenus() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            firestoreRepository.getMenusFlow().collect { menus ->
-                _uiState.value = _uiState.value. copy(
+            repository.getMenusFlow().collect { menus ->
+                _uiState.value = _uiState.value.copy(
                     menus = menus,
                     isLoading = false
                 )
@@ -43,7 +44,7 @@ class MenuViewModel :  ViewModel() {
 
     private fun loadTopMenus() {
         viewModelScope.launch {
-            firestoreRepository.getTopMenusFlow(5).collect { topMenus ->
+            repository.getTopMenusFlow(5).collect { topMenus ->
                 _uiState.value = _uiState.value.copy(topMenus = topMenus)
             }
         }
@@ -57,13 +58,15 @@ class MenuViewModel :  ViewModel() {
         _uiState.value = _uiState.value.copy(selectedMenu = null)
     }
 
-    // Tambah menu dengan imageUrl dari internet (ImgBB, Cloudinary, dll)
+    // ===============================
+    // ➕ ADD MENU
+    // ===============================
     fun addMenu(
         name: String,
         description: String,
         price: Int,
         category: String,
-        imageUrl:  String = ""  // URL gambar dari internet
+        imageUrl: String = ""
     ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
@@ -75,25 +78,22 @@ class MenuViewModel :  ViewModel() {
                     price = price,
                     category = category,
                     imageUrl = imageUrl,
-                    isAvailable = true,
+                    available = true, // 🔥 FIX
                     quantity = 0,
                     soldCount = 0
                 )
 
-                val result = firestoreRepository.addMenu(menu)
-                if (result.isSuccess) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        successMessage = "Menu berhasil ditambahkan"
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Gagal menambahkan menu"
-                    )
-                }
+                val result = repository.addMenu(menu)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    successMessage = if (result.isSuccess)
+                        "Menu berhasil ditambahkan"
+                    else
+                        "Gagal menambahkan menu"
+                )
+
             } catch (e: Exception) {
-                _uiState.value = _uiState.value. copy(
+                _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     errorMessage = e.message
                 )
@@ -101,33 +101,25 @@ class MenuViewModel :  ViewModel() {
         }
     }
 
-    fun updateMenu(
-        menu: Menu,
-        newImageUrl: String? = null  // URL gambar baru jika diubah
-    ) {
+    // ===============================
+    // 🔄 UPDATE MENU
+    // ===============================
+    fun updateMenu(menu: Menu, newImageUrl: String? = null) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
                 val updatedMenu = if (newImageUrl != null) {
                     menu.copy(imageUrl = newImageUrl)
-                } else {
-                    menu
-                }
+                } else menu
 
-                val result = firestoreRepository.updateMenu(updatedMenu)
+                repository.updateMenu(updatedMenu)
 
-                if (result.isSuccess) {
-                    _uiState.value = _uiState. value.copy(
-                        isLoading = false,
-                        successMessage = "Menu berhasil diupdate"
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Gagal mengupdate menu"
-                    )
-                }
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    successMessage = "Menu berhasil diupdate"
+                )
+
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -137,24 +129,21 @@ class MenuViewModel :  ViewModel() {
         }
     }
 
+    // ===============================
+    // 🗑 DELETE MENU
+    // ===============================
     fun deleteMenu(menu: Menu) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
-                val result = firestoreRepository.deleteMenu(menu.id)
-                if (result.isSuccess) {
-                    _uiState.value = _uiState. value.copy(
-                        isLoading = false,
-                        successMessage = "Menu berhasil dihapus"
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Gagal menghapus menu"
-                    )
-                }
-            } catch (e:  Exception) {
+                repository.deleteMenu(menu.id)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    successMessage = "Menu berhasil dihapus"
+                )
+
+            } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     errorMessage = e.message
@@ -163,11 +152,16 @@ class MenuViewModel :  ViewModel() {
         }
     }
 
+    // ===============================
+    // 🔁 TOGGLE AVAILABLE
+    // ===============================
     fun toggleMenuAvailability(menu: Menu) {
         viewModelScope.launch {
             try {
-                val updatedMenu = menu.copy(isAvailable = !menu.isAvailable)
-                firestoreRepository.updateMenu(updatedMenu)
+                val updatedMenu = menu.copy(
+                    available = !menu.available
+                )
+                repository.updateMenu(updatedMenu)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = e.message)
             }
@@ -175,7 +169,7 @@ class MenuViewModel :  ViewModel() {
     }
 
     fun clearMessages() {
-        _uiState.value = _uiState. value.copy(
+        _uiState.value = _uiState.value.copy(
             errorMessage = null,
             successMessage = null
         )
