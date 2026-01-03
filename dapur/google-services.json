@@ -60,6 +60,43 @@
     },
     {
       "client_info": {
+        "mobilesdk_app_id": "1:526117852050:android:c122a03315deca6273674b",
+        "android_client_info": {
+          "package_name": "org.d3ifcool.dapur"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "526117852050-u7m3kt0lvrcv9qh9a9k34b9ss3836r9d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.d3ifcool.dapur",
+            "certificate_hash": "afa2eae6cc965084335c98f08812b676f7c5d069"
+          }
+        },
+        {
+          "client_id": "526117852050-ap14jhbctee9b7rpsmjh7qa5m6fduah3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOkSGg7oB35KmUTpGrw-HnLVHiHUYDMO8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "526117852050-ap14jhbctee9b7rpsmjh7qa5m6fduah3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:526117852050:android:3b71081c595af7a373674b",
         "android_client_info": {
           "package_name": "org.d3ifcool.mejaq"

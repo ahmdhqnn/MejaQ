@@ -29,6 +29,13 @@ import org.d3ifcool.mejaq.ui.theme.Putih
 import org.d3ifcool.shared.viewmodel.PesananViewModel
 import org.d3ifcool.mejaq.R
 import org.d3ifcool.mejaq.ui.theme.AbuCard
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+
+
+import kotlinx.coroutines.launch
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +51,11 @@ fun CartScreen(
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedIndex by remember { mutableStateOf(-1) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Putih,
         topBar = {
             TopAppBar(
@@ -81,7 +92,7 @@ fun CartScreen(
                         userId = FirebaseAuth.getInstance().uid!!,
                         namaPelanggan = FirebaseAuth.getInstance()
                             .currentUser?.displayName ?: "User",
-                        items = viewModel.cartItems // 🔥 INI WAJIB
+                        items = viewModel.cartItems
                     )
                     navController.navigate(Screen.Success.route)
                 },
@@ -103,47 +114,89 @@ fun CartScreen(
                 .padding(horizontal = 12.dp)
         ) {
 
-
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
+                itemsIndexed(
+                    items = viewModel.cartItems,
+                    key = { _, item -> item.menuId }
+                ) { index, item ->
+
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = { value ->
+                            if (value == SwipeToDismissBoxValue.EndToStart) {
+
+                                val removedItem = viewModel.removeCartItem(index)
+
+                                if (removedItem != null) {
+                                    scope.launch {
+                                        val result = snackbarHostState.showSnackbar(
+                                            message = "${removedItem.nama} dihapus",
+                                            actionLabel = "UNDO",
+                                            duration = SnackbarDuration.Short
+                                        )
+
+                                        if (result == SnackbarResult.ActionPerformed) {
+                                            viewModel.restoreCartItem(index, removedItem)
+                                        }
+                                    }
+                                }
+                                true
+                            } else false
+                        }
+                    )
 
 
-                itemsIndexed(viewModel.cartItems) { index, item ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                selectedIndex = index
-                                showEditDialog = true
-                            },
-                        colors = CardDefaults.cardColors(containerColor = AbuCard),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-
-                    Row(
-                            Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-
-                            AsyncImage(
-                                model = item.imageUrl,
-                                contentDescription = item.nama,
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        backgroundContent = {
+                            Box(
                                 modifier = Modifier
-                                    .size(56.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
-                            )
+                                    .fillMaxSize()
+                                    .padding(12.dp),
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                Text(
+                                    "Hapus",
+                                    color = Color.Red,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(end = 24.dp)
+                                )
+                            }
+                        }
+                    ) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selectedIndex = index
+                                    showEditDialog = true
+                                },
+                            colors = CardDefaults.cardColors(containerColor = AbuCard),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = item.imageUrl,
+                                    contentDescription = item.nama,
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
 
+                                Spacer(Modifier.width(12.dp))
 
-                            Spacer(Modifier.width(12.dp))
-
-                            Column(Modifier.weight(1f)) {
-                                Text(item.nama, fontWeight = FontWeight.Bold)
-                                Text("Rp ${item.harga}", fontSize = 12.sp)
-                                Text("Jumlah: ${item.jumlah}", fontSize = 12.sp)
+                                Column(Modifier.weight(1f)) {
+                                    Text(item.nama, fontWeight = FontWeight.Bold)
+                                    Text("Rp ${item.harga}", fontSize = 12.sp)
+                                    Text("Jumlah: ${item.jumlah}", fontSize = 12.sp)
+                                }
                             }
                         }
                     }
@@ -167,12 +220,7 @@ fun CartScreen(
                 )
             }
 
-
-            HorizontalDivider(
-                Modifier.padding(vertical = 12.dp),
-                DividerDefaults.Thickness,
-                DividerDefaults.color
-            )
+            HorizontalDivider(Modifier.padding(vertical = 12.dp))
 
             Row(
                 Modifier.fillMaxWidth(),
@@ -197,17 +245,14 @@ fun CartScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text("Total Pembayaran", fontWeight = FontWeight.Bold)
-                Text(
-                    "Rp $total",
-                    fontWeight = FontWeight.Bold,
-                    color = Merah
-                )
+                Text("Rp $total", fontWeight = FontWeight.Bold, color = Merah)
             }
 
             Spacer(Modifier.height(80.dp))
         }
     }
 }
+
 
 @Composable
 fun EditCartItemDialog(

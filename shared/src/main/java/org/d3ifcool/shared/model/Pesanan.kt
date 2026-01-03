@@ -37,10 +37,11 @@ data class Pesanan(
 data class ItemMenu(
     val menuId: String = "",
     val nama: String = "",
+    val imageUrl: String = "",
     val catatan: String = "",
     val jumlah: Int = 0,
     val harga: Int = 0,
     val subtotal: Int = 0
 ) {
-    constructor() : this("", "", "", 0, 0, 0)
+    constructor() : this("", "", "", "", 0, 0, 0)
 }

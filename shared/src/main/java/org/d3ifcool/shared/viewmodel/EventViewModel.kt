@@ -40,7 +40,7 @@ class EventViewModel : ViewModel() {
         }
     }
 
-    private fun loadActiveEvents() {
+     fun loadActiveEvents() {
         viewModelScope.launch {
             firestoreRepository.getActiveEventsFlow().collect { events ->
                 _uiState.value = _uiState.value.copy(activeEvents = events)
@@ -76,7 +76,7 @@ class EventViewModel : ViewModel() {
                     eventDate = eventDate,
                     eventTime = eventTime,
                     location = location,
-                    isActive = true
+                    active = true
                 )
 
                 val result = firestoreRepository.addEvent(event)
@@ -164,11 +164,11 @@ class EventViewModel : ViewModel() {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
-                val updatedEvent = event.copy(isActive = !event.isActive)
+                val updatedEvent = event.copy(active = !event.active)
                 val result = firestoreRepository. updateEvent(updatedEvent)
 
                 if (result.isSuccess) {
-                    val statusText = if (updatedEvent.isActive) "diaktifkan" else "dinonaktifkan"
+                    val statusText = if (updatedEvent.active) "diaktifkan" else "dinonaktifkan"
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         successMessage = "Event berhasil $statusText"
@@ -187,6 +187,20 @@ class EventViewModel : ViewModel() {
             }
         }
     }
+
+    fun loadEventDetail(eventId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            val event = firestoreRepository.getEventById(eventId)
+
+            _uiState.value = _uiState.value.copy(
+                selectedEvent = event,
+                isLoading = false
+            )
+        }
+    }
+
 
     fun clearMessages() {
         _uiState.value = _uiState.value.copy(

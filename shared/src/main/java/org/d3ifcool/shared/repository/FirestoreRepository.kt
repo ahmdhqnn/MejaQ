@@ -283,23 +283,26 @@ class FirestoreRepository {
 
     fun getActiveEventsFlow(): Flow<List<Event>> = callbackFlow {
         val listener = eventCollection
-            .whereEqualTo("isActive", true)
+            .whereEqualTo("active", true) // 🔥 FIX
+            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
                     return@addSnapshotListener
                 }
-                val events = snapshot?.documents?.mapNotNull { doc ->
-                    try {
-                        doc.toObject(Event::class.java)
-                    } catch (e: Exception) {
-                        null
-                    }
-                } ?: emptyList()
+
+                val events = snapshot?.documents
+                    ?.mapNotNull { doc ->
+                        doc.toObject(Event::class.java)?.copy(id = doc.id)
+                    } ?: emptyList()
+
                 trySend(events)
             }
+
         awaitClose { listener.remove() }
     }
+
+
 
     fun getAllEventsFlow(): Flow<List<Event>> = callbackFlow {
         val listener = eventCollection
@@ -346,6 +349,16 @@ class FirestoreRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun getEventById(eventId: String): Event? {
+        return try {
+            val doc = eventCollection.document(eventId).get().await()
+            doc.toObject(Event::class.java)?.copy(id = doc.id)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
 
     // ==================== USER OPERATIONS ====================
 
