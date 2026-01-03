@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.d3ifcool.admin.menu
 
 import androidx.compose.foundation.BorderStroke
@@ -134,7 +136,7 @@ fun MenuGridItem(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // Image dari URL atau placeholder
+
             if (menu.imageUrl.isNotEmpty()) {
                 AsyncImage(
                     model = menu.imageUrl,
@@ -191,8 +193,7 @@ fun MenuGridItem(
                     color = Color(0xFFD61355)
                 )
 
-                // Status ketersediaan
-                if (! menu.isAvailable) {
+                if (! menu.available) {
                     Text(
                         text = "Habis",
                         fontSize = 10.sp,

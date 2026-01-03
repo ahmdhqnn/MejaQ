@@ -46,23 +46,23 @@ class FirestoreRepository {
 
     fun getAvailableMenusFlow(): Flow<List<Menu>> = callbackFlow {
         val listener = menuCollection
-            .whereEqualTo("isAvailable", true)
+            .whereEqualTo("available", true)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
                     return@addSnapshotListener
                 }
-                val menus = snapshot?.documents?.mapNotNull { doc ->
-                    try {
-                        doc.toObject(Menu::class.java)
-                    } catch (e: Exception) {
-                        null
-                    }
+
+                val menus = snapshot?.documents?.mapNotNull {
+                    it.toObject(Menu::class.java)
                 } ?: emptyList()
+
                 trySend(menus)
             }
+
         awaitClose { listener.remove() }
     }
+
 
     fun getTopMenusFlow(limit: Int = 5): Flow<List<Menu>> = callbackFlow {
         val listener = menuCollection
@@ -283,7 +283,7 @@ class FirestoreRepository {
 
     fun getActiveEventsFlow(): Flow<List<Event>> = callbackFlow {
         val listener = eventCollection
-            .whereEqualTo("active", true) // 🔥 FIX
+            .whereEqualTo("active", true)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -291,16 +291,16 @@ class FirestoreRepository {
                     return@addSnapshotListener
                 }
 
-                val events = snapshot?.documents
-                    ?.mapNotNull { doc ->
-                        doc.toObject(Event::class.java)?.copy(id = doc.id)
-                    } ?: emptyList()
+                val events = snapshot?.documents?.mapNotNull {
+                    it.toObject(Event::class.java)?.copy(id = it.id)
+                } ?: emptyList()
 
                 trySend(events)
             }
 
         awaitClose { listener.remove() }
     }
+
 
 
 
@@ -399,11 +399,11 @@ class FirestoreRepository {
 
     suspend fun getActiveEventsCount(): Int {
         return try {
-            val snapshot = eventCollection
-                .whereEqualTo("isActive", true)
+            eventCollection
+                .whereEqualTo("active", true)
                 .get()
                 .await()
-            snapshot.size()
+                .size()
         } catch (e: Exception) {
             0
         }

@@ -14,25 +14,27 @@ data class EventUiState(
     val activeEvents: List<Event> = emptyList(),
     val selectedEvent: Event? = null,
     val isLoading: Boolean = false,
-    val errorMessage:  String? = null,
+    val errorMessage: String? = null,
     val successMessage: String? = null
 )
 
 class EventViewModel : ViewModel() {
-    private val firestoreRepository = FirestoreRepository()
+
+    private val repository = FirestoreRepository()
 
     private val _uiState = MutableStateFlow(EventUiState())
-    val uiState: StateFlow<EventUiState> = _uiState. asStateFlow()
+    val uiState: StateFlow<EventUiState> = _uiState.asStateFlow()
 
     init {
-        loadActiveEvents()
+        observeAllEvents()
+        observeActiveEvents()
     }
 
-    fun loadAllEvents() {
+    private fun observeAllEvents() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            firestoreRepository.getAllEventsFlow().collect { events ->
-                _uiState.value = _uiState.value. copy(
+            repository.getAllEventsFlow().collect { events ->
+                _uiState.value = _uiState.value.copy(
                     events = events,
                     isLoading = false
                 )
@@ -40,30 +42,21 @@ class EventViewModel : ViewModel() {
         }
     }
 
-     fun loadActiveEvents() {
+    private fun observeActiveEvents() {
         viewModelScope.launch {
-            firestoreRepository.getActiveEventsFlow().collect { events ->
+            repository.getActiveEventsFlow().collect { events ->
                 _uiState.value = _uiState.value.copy(activeEvents = events)
             }
         }
     }
 
-    fun selectEvent(event: Event) {
-        _uiState.value = _uiState.value. copy(selectedEvent = event)
-    }
-
-    fun clearSelectedEvent() {
-        _uiState.value = _uiState. value.copy(selectedEvent = null)
-    }
-
-    // Tambah event dengan imageUrl dari internet
     fun addEvent(
         title: String,
         description: String,
         eventDate: String,
         eventTime: String,
         location: String,
-        imageUrl:  String = ""  // URL gambar dari internet (ImgBB, dll)
+        imageUrl: String = ""
     ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
@@ -76,81 +69,42 @@ class EventViewModel : ViewModel() {
                     eventDate = eventDate,
                     eventTime = eventTime,
                     location = location,
-                    active = true
+                    active = true // 🔥 FIX FIELD
                 )
 
-                val result = firestoreRepository.addEvent(event)
-                if (result.isSuccess) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        successMessage = "Event berhasil ditambahkan"
-                    )
-                } else {
-                    _uiState. value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Gagal menambahkan event"
-                    )
-                }
+                val result = repository.addEvent(event)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    successMessage = if (result.isSuccess)
+                        "Event berhasil ditambahkan"
+                    else
+                        "Gagal menambahkan event"
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    errorMessage = e. message
+                    errorMessage = e.message
                 )
             }
         }
     }
 
     fun updateEvent(event: Event, newImageUrl: String? = null) {
-        viewModelScope. launch {
-            _uiState.value = _uiState. value.copy(isLoading = true)
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
                 val updatedEvent = if (newImageUrl != null) {
                     event.copy(imageUrl = newImageUrl)
-                } else {
-                    event
-                }
+                } else event
 
-                val result = firestoreRepository.updateEvent(updatedEvent)
+                repository.updateEvent(updatedEvent)
 
-                if (result.isSuccess) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        successMessage = "Event berhasil diupdate"
-                    )
-                } else {
-                    _uiState.value = _uiState. value.copy(
-                        isLoading = false,
-                        errorMessage = "Gagal mengupdate event"
-                    )
-                }
-            } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    errorMessage = e. message
+                    successMessage = "Event berhasil diupdate"
                 )
-            }
-        }
-    }
-
-    fun deleteEvent(event: Event) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value. copy(isLoading = true)
-
-            try {
-                val result = firestoreRepository.deleteEvent(event.id)
-                if (result.isSuccess) {
-                    _uiState.value = _uiState. value.copy(
-                        isLoading = false,
-                        successMessage = "Event berhasil dihapus"
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Gagal menghapus event"
-                    )
-                }
-            } catch (e:  Exception) {
+            } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     errorMessage = e.message
@@ -165,24 +119,38 @@ class EventViewModel : ViewModel() {
 
             try {
                 val updatedEvent = event.copy(active = !event.active)
-                val result = firestoreRepository. updateEvent(updatedEvent)
+                repository.updateEvent(updatedEvent)
 
-                if (result.isSuccess) {
-                    val statusText = if (updatedEvent.active) "diaktifkan" else "dinonaktifkan"
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        successMessage = "Event berhasil $statusText"
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Gagal mengubah status event"
-                    )
-                }
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    successMessage = if (updatedEvent.active)
+                        "Event berhasil diaktifkan"
+                    else
+                        "Event berhasil dinonaktifkan"
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    errorMessage = e. message
+                    errorMessage = e.message
+                )
+            }
+        }
+    }
+
+    fun deleteEvent(event: Event) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            try {
+                repository.deleteEvent(event.id)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    successMessage = "Event berhasil dihapus"
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = e.message
                 )
             }
         }
@@ -192,7 +160,7 @@ class EventViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            val event = firestoreRepository.getEventById(eventId)
+            val event = repository.getEventById(eventId)
 
             _uiState.value = _uiState.value.copy(
                 selectedEvent = event,
@@ -201,6 +169,9 @@ class EventViewModel : ViewModel() {
         }
     }
 
+    fun clearSelectedEvent() {
+        _uiState.value = _uiState.value.copy(selectedEvent = null)
+    }
 
     fun clearMessages() {
         _uiState.value = _uiState.value.copy(

@@ -13,15 +13,11 @@ data class Menu(
     val quantity: Int = 0,
     val imageUrl: String = "",
     val category: String = "",
-
-    // 🔥 FIX NAMA FIELD (HARUS SAMA DENGAN FIRESTORE)
     val available: Boolean = true,
 
     val soldCount: Int = 0,
+
     @ServerTimestamp
     val createdAt: Timestamp? = null
-) {
-    constructor() : this(
-        "", "", "", 0, 0, "", "", true, 0, null
-    )
-}
+)
+

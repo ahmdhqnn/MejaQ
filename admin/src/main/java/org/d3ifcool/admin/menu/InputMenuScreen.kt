@@ -72,7 +72,6 @@ fun InputMenuScreen(
     var kategoriMenu by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
 
-    // Handle success message
     LaunchedEffect(uiState.successMessage) {
         uiState.successMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -81,7 +80,6 @@ fun InputMenuScreen(
         }
     }
 
-    // Handle error message
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -132,7 +130,7 @@ fun InputMenuScreen(
                 .padding(horizontal = 16.dp, vertical = 20.dp),
             verticalArrangement = Arrangement. spacedBy(16.dp)
         ) {
-            // Image Preview atau Placeholder
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -160,7 +158,6 @@ fun InputMenuScreen(
                 }
             }
 
-            // URL Gambar (untuk input manual)
             OutlinedTextField(
                 value = imageUrl,
                 onValueChange = { imageUrl = it },

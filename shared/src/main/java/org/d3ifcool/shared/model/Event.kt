@@ -11,21 +11,10 @@ data class Event(
     val description: String = "",
     val imageUrl: String = "",
     val eventDate: String = "",
-    val eventTime:  String = "",
+    val eventTime: String = "",
     val location: String = "",
     val active: Boolean = true,
+
     @ServerTimestamp
     val createdAt: Timestamp? = null
-) {
-    constructor() : this(
-        id = "",
-        title = "",
-        description = "",
-        imageUrl = "",
-        eventDate = "",
-        eventTime = "",
-        location = "",
-        active = true,
-        createdAt = null
-    )
-}
+)

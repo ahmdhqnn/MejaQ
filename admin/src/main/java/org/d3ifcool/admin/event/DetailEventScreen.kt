@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,10 +41,8 @@ fun DetailEventScreen(
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // Find event by ID from the list
     val event = uiState.events.find { it. id == eventId }
 
-    // Handle messages
     LaunchedEffect(uiState.successMessage) {
         uiState.successMessage?.let { message ->
             Toast.makeText(context, message, Toast. LENGTH_SHORT).show()
@@ -194,9 +193,8 @@ fun DetailEventContent(
             color = Color.Black
         )
 
-        Divider()
+        HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
-        // Info Section
         Column(verticalArrangement = Arrangement. spacedBy(8.dp)) {
             Row {
                 Text(
@@ -251,13 +249,13 @@ fun DetailEventContent(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = if (event.isActive) "Aktif" else "Tidak Aktif",
+                    text = if (event.active) "Aktif" else "Tidak Aktif",
                     fontSize = 14.sp,
-                    color = if (event.isActive) Color(0xFF4CAF50) else Color.Red
+                    color = if (event.active) Color(0xFF4CAF50) else Color.Red
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Switch(
-                    checked = event.isActive,
+                    checked = event.active,
                     onCheckedChange = { onToggleStatus() },
                     enabled = !isLoading,
                     colors = SwitchDefaults.colors(

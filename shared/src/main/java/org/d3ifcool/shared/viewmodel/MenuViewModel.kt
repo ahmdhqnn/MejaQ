@@ -58,9 +58,6 @@ class MenuViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(selectedMenu = null)
     }
 
-    // ===============================
-    // ➕ ADD MENU
-    // ===============================
     fun addMenu(
         name: String,
         description: String,
@@ -101,9 +98,6 @@ class MenuViewModel : ViewModel() {
         }
     }
 
-    // ===============================
-    // 🔄 UPDATE MENU
-    // ===============================
     fun updateMenu(menu: Menu, newImageUrl: String? = null) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
@@ -129,9 +123,6 @@ class MenuViewModel : ViewModel() {
         }
     }
 
-    // ===============================
-    // 🗑 DELETE MENU
-    // ===============================
     fun deleteMenu(menu: Menu) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
@@ -152,19 +143,11 @@ class MenuViewModel : ViewModel() {
         }
     }
 
-    // ===============================
-    // 🔁 TOGGLE AVAILABLE
-    // ===============================
     fun toggleMenuAvailability(menu: Menu) {
         viewModelScope.launch {
-            try {
-                val updatedMenu = menu.copy(
-                    available = !menu.available
-                )
-                repository.updateMenu(updatedMenu)
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(errorMessage = e.message)
-            }
+            repository.updateMenu(
+                menu.copy(available = !menu.available)
+            )
         }
     }
 

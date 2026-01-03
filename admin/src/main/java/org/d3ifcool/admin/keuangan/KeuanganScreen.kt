@@ -51,7 +51,6 @@ fun KeuanganScreen(
 ) {
     val uiState by pesananViewModel.uiState. collectAsState()
 
-    // Load completed orders (transaksi) when screen opens
     LaunchedEffect(Unit) {
         pesananViewModel. loadCompletedPesanan()
     }
@@ -96,7 +95,7 @@ fun KeuanganScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement. spacedBy(8.dp)
             ) {
-                // Summary Card
+
                 item {
                     val totalPendapatan = uiState.completedPesanan.sumOf { it.totalHarga }
                     SummaryTransaksiCard(
@@ -178,7 +177,7 @@ fun RiwayatCard(pesanan:  org.d3ifcool.shared.model.Pesanan) {
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEEF2))
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // Header
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -202,7 +201,6 @@ fun RiwayatCard(pesanan:  org.d3ifcool.shared.model.Pesanan) {
                 )
             }
 
-            // Detail saat expanded
             if (expanded) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Divider()
@@ -215,7 +213,6 @@ fun RiwayatCard(pesanan:  org.d3ifcool.shared.model.Pesanan) {
 
                 Spacer(modifier = Modifier. height(8.dp))
 
-                // Daftar menu
                 pesanan. daftarMenu.forEach { item ->
                     Row(
                         modifier = Modifier
