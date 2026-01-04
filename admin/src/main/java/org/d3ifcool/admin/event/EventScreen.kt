@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -42,10 +41,7 @@ fun EventScreen(
 ) {
     val uiState by eventViewModel.uiState.collectAsState()
 
-    // Load all events when screen opens
-    LaunchedEffect(Unit) {
-        eventViewModel.loadAllEvents()
-    }
+
 
     Scaffold(
         containerColor = Color(0xFFFDFDFE),
@@ -195,7 +191,7 @@ fun EventItemCard(
                 )
 
                 // Status badge
-                if (! event.isActive) {
+                if (! event.active) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Tidak Aktif",

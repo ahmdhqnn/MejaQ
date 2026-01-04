@@ -49,7 +49,6 @@ fun InputEventScreen(
     var deskripsiEvent by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
 
-    // Handle success message
     LaunchedEffect(uiState. successMessage) {
         uiState.successMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -58,7 +57,6 @@ fun InputEventScreen(
         }
     }
 
-    // Handle error message
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -113,7 +111,7 @@ fun InputEventScreen(
                 .padding(horizontal = 16.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Image Preview atau Placeholder
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -141,7 +139,6 @@ fun InputEventScreen(
                 }
             }
 
-            // URL Gambar
             OutlinedTextField(
                 value = imageUrl,
                 onValueChange = { imageUrl = it },
@@ -152,7 +149,6 @@ fun InputEventScreen(
                 singleLine = true
             )
 
-            // Nama Event
             OutlinedTextField(
                 value = namaEvent,
                 onValueChange = { namaEvent = it },
@@ -162,7 +158,6 @@ fun InputEventScreen(
                 singleLine = true
             )
 
-            // Tanggal Event
             OutlinedTextField(
                 value = tanggalEvent,
                 onValueChange = { tanggalEvent = it },
@@ -173,7 +168,6 @@ fun InputEventScreen(
                 singleLine = true
             )
 
-            // Waktu Event
             OutlinedTextField(
                 value = waktuEvent,
                 onValueChange = { waktuEvent = it },
@@ -184,7 +178,6 @@ fun InputEventScreen(
                 singleLine = true
             )
 
-            // Lokasi Event
             OutlinedTextField(
                 value = lokasiEvent,
                 onValueChange = { lokasiEvent = it },
@@ -194,7 +187,6 @@ fun InputEventScreen(
                 singleLine = true
             )
 
-            // Deskripsi Event
             OutlinedTextField(
                 value = deskripsiEvent,
                 onValueChange = { deskripsiEvent = it },

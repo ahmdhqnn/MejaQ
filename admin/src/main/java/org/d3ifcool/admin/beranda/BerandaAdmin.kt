@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.d3ifcool.admin.beranda
 
 import androidx.compose.foundation.Image
@@ -155,7 +157,6 @@ fun BerandaContent(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Summary Cards dengan data real-time
             Row(
                 modifier = Modifier. fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
@@ -174,12 +175,10 @@ fun BerandaContent(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Grafik dengan data real-time
             GrafikPenjualan(weeklyRevenue = weeklyRevenue)
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Menu Favorit dengan data real-time
             StatistikMenuFavorit(topMenus = topMenus)
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -191,7 +190,6 @@ fun BerandaContent(
 
             Spacer(modifier = Modifier.height(50.dp))
 
-            // Menu utama
             Column {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -305,11 +303,11 @@ fun GrafikPenjualan(weeklyRevenue: List<org.d3ifcool.shared.viewmodel.DailyReven
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.Bottom
         ) {
-            // Calculate max for scaling
+
             val maxRevenue = weeklyRevenue.maxOfOrNull { it.revenue } ?: 1
 
             if (weeklyRevenue.isEmpty()) {
-                // Default data jika belum ada transaksi
+
                 val defaultLabels = listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
                 defaultLabels.forEach { label ->
                     Column(

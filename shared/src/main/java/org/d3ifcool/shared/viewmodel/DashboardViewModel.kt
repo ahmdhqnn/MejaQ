@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.d3ifcool.shared.model.Menu
+import org.d3ifcool.shared.model.Pesanan
 import org.d3ifcool.shared.model.Transaksi
 import org.d3ifcool.shared.repository.FirestoreRepository
 import java.util.Calendar
@@ -18,110 +19,100 @@ data class DashboardUiState(
     val weeklyRevenue: List<DailyRevenue> = emptyList(),
     val recentTransaksi: List<Transaksi> = emptyList(),
     val isLoading: Boolean = false,
-    val errorMessage: String?  = null
+    val errorMessage: String? = null
 )
 
 data class DailyRevenue(
     val dayName: String,
-    val revenue:  Int
+    val revenue: Int
 )
 
 class DashboardViewModel : ViewModel() {
-    private val firestoreRepository = FirestoreRepository()
+
+    private val repository = FirestoreRepository()
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
     init {
-        loadDashboardData()
+        observeTopMenus()
+        observeRecentTransaksi()
+        observePesananSelesai() // 🔥 KUNCI
+        loadActiveEvents()
     }
 
-    fun loadDashboardData() {
+    // 🔥 AMBIL PESANAN SELESAI SEBAGAI SUMBER DATA
+    private fun observePesananSelesai() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            repository.getCompletedPesananFlow().collect { pesananList ->
+                val totalRevenue = pesananList.sumOf { it.totalHarga }
+                val weeklyRevenue = calculateWeeklyRevenueFromPesanan(pesananList)
 
-            try {
-                // Load active events count
-                val eventsCount = firestoreRepository. getActiveEventsCount()
-
-                // Load weekly revenue
-                val weeklyRevenue = calculateWeeklyRevenue()
-
-                // Calculate total revenue for current month
-                val calendar = Calendar.getInstance()
-                calendar.set(Calendar.DAY_OF_MONTH, 1)
-                calendar.set(Calendar.HOUR_OF_DAY, 0)
-                calendar.set(Calendar. MINUTE, 0)
-                calendar.set(Calendar.SECOND, 0)
-                calendar. set(Calendar.MILLISECOND, 0)
-                val startOfMonth = calendar.timeInMillis
-
-                calendar.add(Calendar.MONTH, 1)
-                val endOfMonth = calendar.timeInMillis
-
-                val totalRevenue = firestoreRepository.getTotalRevenue(startOfMonth, endOfMonth)
-
-                _uiState. value = _uiState.value.copy(
+                _uiState.value = _uiState.value.copy(
                     totalRevenue = totalRevenue,
-                    activeEventsCount = eventsCount,
                     weeklyRevenue = weeklyRevenue,
                     isLoading = false
                 )
-            } catch (e: Exception) {
-                _uiState. value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = e.message
-                )
             }
         }
+    }
 
-        // Load top menus (real-time)
+    private fun loadActiveEvents() {
         viewModelScope.launch {
-            firestoreRepository.getTopMenusFlow(5).collect { menus ->
+            val count = repository.getActiveEventsCount()
+            _uiState.value = _uiState.value.copy(activeEventsCount = count)
+        }
+    }
+
+    private fun observeTopMenus() {
+        viewModelScope.launch {
+            repository.getTopMenusFlow(5).collect { menus ->
                 _uiState.value = _uiState.value.copy(topMenus = menus)
             }
         }
+    }
 
-        // Load recent transactions (real-time)
+    private fun observeRecentTransaksi() {
         viewModelScope.launch {
-            firestoreRepository.getTransaksiFlow().collect { transaksiList ->
-                _uiState.value = _uiState. value.copy(
-                    recentTransaksi = transaksiList. take(10)
+            repository.getTransaksiFlow().collect { transaksi ->
+                _uiState.value = _uiState.value.copy(
+                    recentTransaksi = transaksi.take(10)
                 )
             }
         }
     }
 
-    private suspend fun calculateWeeklyRevenue(): List<DailyRevenue> {
+    // 🔥 HITUNG GRAFIK DARI PESANAN (BUKAN TRANSAKSI)
+    private fun calculateWeeklyRevenueFromPesanan(
+        pesananList: List<Pesanan>
+    ): List<DailyRevenue> {
+
         val dayNames = listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
-        val weeklyData = mutableListOf<DailyRevenue>()
+        val result = mutableListOf<DailyRevenue>()
 
         val calendar = Calendar.getInstance()
-
-        // Find Monday of current week
-        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-        val daysFromMonday = if (dayOfWeek == Calendar.SUNDAY) 6 else dayOfWeek - Calendar.MONDAY
-        calendar.add(Calendar.DAY_OF_MONTH, -daysFromMonday)
-
-        calendar.set(Calendar. HOUR_OF_DAY, 0)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar. SECOND, 0)
+        calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
 
-        for (i in 0 until 7) {
-            val startOfDay = calendar.timeInMillis
-            calendar.add(Calendar.DAY_OF_MONTH, 1)
-            val endOfDay = calendar.timeInMillis
+        for (i in 6 downTo 0) {
+            val start = calendar.timeInMillis - (i * 24 * 60 * 60 * 1000)
+            val end = start + 24 * 60 * 60 * 1000
 
-            val dailyRevenue = firestoreRepository.getTotalRevenue(startOfDay, endOfDay)
-            weeklyData.add(DailyRevenue(dayNames[i], dailyRevenue))
+            val revenue = pesananList.filter {
+                it.createdAt != null &&
+                        it.createdAt.toDate().time in start until end
+            }.sumOf { it.totalHarga }
+
+            result.add(DailyRevenue(dayNames[6 - i], revenue))
         }
 
-        return weeklyData
+        return result
     }
 
-    fun refreshData() {
-        loadDashboardData()
+    fun refresh() {
+        _uiState.value = _uiState.value.copy(isLoading = true)
     }
 
     fun clearError() {

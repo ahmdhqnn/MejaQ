@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.d3ifcool.admin.menu
 
 import android.widget.Toast
@@ -66,10 +68,8 @@ fun DetailMenuScreen(
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // Find menu by ID from the list
     val menu = uiState.menus.find { it.id == menuId }
 
-    // Handle messages
     LaunchedEffect(uiState.successMessage) {
         uiState.successMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -254,12 +254,12 @@ fun DetailMenuContent(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = if (menu.isAvailable) "Tersedia" else "Habis",
+                    text = if (menu.available) "Tersedia" else "Habis",
                     fontSize = 14.sp,
-                    color = if (menu.isAvailable) Color(0xFF4CAF50) else Color.Red
+                    color = if (menu.available) Color(0xFF4CAF50) else Color.Red
                 )
                 Switch(
-                    checked = menu.isAvailable,
+                    checked = menu.available,
                     onCheckedChange = { onToggleAvailability() },
                     enabled = !isLoading,
                     colors = SwitchDefaults.colors(

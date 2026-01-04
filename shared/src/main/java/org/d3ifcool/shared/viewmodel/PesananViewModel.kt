@@ -27,6 +27,7 @@ data class PesananUiState(
 
 )
 
+@Suppress("DEPRECATION")
 class PesananViewModel : ViewModel() {
 
     private val firestoreRepository = FirestoreRepository()

@@ -25,14 +25,14 @@ import org.d3ifcool.shared.viewmodel.PesananViewModel
 
 @Composable
 fun SetupNavGraph(navController: NavHostController = rememberNavController()) {
-    // Hanya AuthViewModel yang di-init di awal
+
     val authViewModel:  AuthViewModel = viewModel()
 
     NavHost(
         navController = navController,
         startDestination = Screen.Login.route
     ) {
-        // Login - tidak perlu data dari Firestore
+
         composable(Screen.Login.route) {
             LoginAdminScreen(
                 navController = navController,
@@ -40,9 +40,7 @@ fun SetupNavGraph(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // Home/Beranda - init ViewModel di sini setelah login
         composable(Screen.Home.route) {
-            // ViewModel di-init hanya saat screen ini dibuka (setelah login)
             val dashboardViewModel: DashboardViewModel = viewModel()
             val menuViewModel: MenuViewModel = viewModel()
 
@@ -54,7 +52,6 @@ fun SetupNavGraph(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // Event List
         composable(Screen.Event.route) {
             val eventViewModel: EventViewModel = viewModel()
             EventScreen(
@@ -72,7 +69,6 @@ fun SetupNavGraph(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // Detail Event
         composable(
             route = Screen.DetailEvent. route,
             arguments = listOf(
@@ -88,7 +84,6 @@ fun SetupNavGraph(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // Menu List
         composable(Screen.Menu.route) {
             val menuViewModel: MenuViewModel = viewModel()
             MenuScreen(
@@ -106,7 +101,6 @@ fun SetupNavGraph(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // Detail Menu
         composable(
             route = Screen.DetailMenu. route,
             arguments = listOf(
@@ -122,7 +116,6 @@ fun SetupNavGraph(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // Keuangan
         composable(Screen.Keuangan.route) {
             val pesananViewModel: PesananViewModel = viewModel()
             KeuanganScreen(
