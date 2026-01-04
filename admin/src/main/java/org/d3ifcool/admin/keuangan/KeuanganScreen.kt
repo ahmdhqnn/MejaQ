@@ -185,7 +185,7 @@ fun RiwayatCard(pesanan:  org.d3ifcool.shared.model.Pesanan) {
             ) {
                 Column {
                     Text(
-                        text = pesanan.meja,
+                        text = "Meja ${pesanan.meja}",
                         fontWeight = FontWeight.Bold
                     )
                     Text(

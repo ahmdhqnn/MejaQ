@@ -1,6 +1,6 @@
 package org.d3ifcool.shared.repository
 
-import com. google.firebase.Timestamp
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
@@ -13,9 +13,8 @@ import org.d3ifcool.shared.model.*
 import java.util.Date
 
 class FirestoreRepository {
-    private val db:  FirebaseFirestore = Firebase.firestore
+    private val db: FirebaseFirestore = Firebase.firestore
 
-    // Collection references
     private val menuCollection = db.collection("menus")
     private val pesananCollection = db.collection("pesanan")
     private val transaksiCollection = db.collection("transaksi")
@@ -52,22 +51,19 @@ class FirestoreRepository {
                     close(error)
                     return@addSnapshotListener
                 }
-
                 val menus = snapshot?.documents?.mapNotNull {
                     it.toObject(Menu::class.java)
                 } ?: emptyList()
 
                 trySend(menus)
             }
-
         awaitClose { listener.remove() }
     }
 
-
     fun getTopMenusFlow(limit: Int = 5): Flow<List<Menu>> = callbackFlow {
         val listener = menuCollection
-            .orderBy("soldCount", Query.Direction. DESCENDING)
-            .limit(limit. toLong())
+            .orderBy("soldCount", Query.Direction.DESCENDING)
+            .limit(limit.toLong())
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
@@ -76,20 +72,20 @@ class FirestoreRepository {
                 val menus = snapshot?.documents?.mapNotNull { doc ->
                     try {
                         doc.toObject(Menu::class.java)
-                    } catch (e:  Exception) {
+                    } catch (e: Exception) {
                         null
                     }
-                } ?:  emptyList()
+                } ?: emptyList()
                 trySend(menus)
             }
-        awaitClose { listener. remove() }
+        awaitClose { listener.remove() }
     }
 
     suspend fun getMenuById(menuId: String): Menu? {
         return try {
             val doc = menuCollection.document(menuId).get().await()
             doc.toObject(Menu::class.java)
-        } catch (e:  Exception) {
+        } catch (e: Exception) {
             null
         }
     }
@@ -105,7 +101,7 @@ class FirestoreRepository {
 
     suspend fun updateMenu(menu: Menu): Result<Unit> {
         return try {
-            menuCollection.document(menu. id).set(menu).await()
+            menuCollection.document(menu.id).set(menu).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -115,7 +111,7 @@ class FirestoreRepository {
     suspend fun deleteMenu(menuId: String): Result<Unit> {
         return try {
             menuCollection.document(menuId).delete().await()
-            Result. success(Unit)
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -123,9 +119,28 @@ class FirestoreRepository {
 
     // ==================== PESANAN OPERATIONS ====================
 
-    fun getPesananFlow(): Flow<List<Pesanan>> = callbackFlow {
+    fun getActivePesananFlow(): Flow<List<Pesanan>> = callbackFlow {
         val listener = pesananCollection
-            . orderBy("createdAt", Query.Direction. DESCENDING)
+            .whereIn("status", listOf("Pending", "Diterima"))
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val list = snapshot?.documents
+                    ?.mapNotNull { it.toObject(Pesanan::class.java) }
+                    ?.sortedBy { it.createdAt }
+                    ?: emptyList()
+
+                trySend(list)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    fun getPendingPesananFlow(): Flow<List<Pesanan>> = callbackFlow {
+        val listener = pesananCollection
+            .whereIn("status", listOf("Pending", "Diterima"))
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
@@ -134,26 +149,6 @@ class FirestoreRepository {
                 val pesananList = snapshot?.documents?.mapNotNull { doc ->
                     try {
                         doc.toObject(Pesanan::class.java)
-                    } catch (e: Exception) {
-                        null
-                    }
-                } ?: emptyList()
-                trySend(pesananList)
-            }
-        awaitClose { listener.remove() }
-    }
-
-    fun getPendingPesananFlow(): Flow<List<Pesanan>> = callbackFlow {
-        val listener = pesananCollection
-            .whereIn("status", listOf("Pending", "Diproses"))
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                val pesananList = snapshot?.documents?. mapNotNull { doc ->
-                    try {
-                        doc. toObject(Pesanan::class.java)
                     } catch (e: Exception) {
                         null
                     }
@@ -171,9 +166,28 @@ class FirestoreRepository {
                     close(error)
                     return@addSnapshotListener
                 }
-                val pesananList = snapshot?.documents?. mapNotNull { doc ->
+
+                val list = snapshot?.documents
+                    ?.mapNotNull { it.toObject(Pesanan::class.java) }
+                    ?.sortedByDescending { it.createdAt }
+                    ?: emptyList()
+
+                trySend(list)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    fun getPesananByUserFlow(userId: String): Flow<List<Pesanan>> = callbackFlow {
+        val listener = pesananCollection
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val pesananList = snapshot?.documents?.mapNotNull { doc ->
                     try {
-                        doc. toObject(Pesanan::class.java)
+                        doc.toObject(Pesanan::class.java)
                     } catch (e: Exception) {
                         null
                     }
@@ -183,38 +197,18 @@ class FirestoreRepository {
         awaitClose { listener.remove() }
     }
 
-    fun getPesananByUserFlow(userId:  String): Flow<List<Pesanan>> = callbackFlow {
-        val listener = pesananCollection
-            .whereEqualTo("userId", userId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                val pesananList = snapshot?.documents?. mapNotNull { doc ->
-                    try {
-                        doc. toObject(Pesanan::class.java)
-                    } catch (e: Exception) {
-                        null
-                    }
-                }?.sortedByDescending { it.createdAt } ?:  emptyList()
-                trySend(pesananList)
-            }
-        awaitClose { listener.remove() }
-    }
-
-    suspend fun addPesanan(pesanan:  Pesanan): Result<String> {
+    suspend fun addPesanan(pesanan: Pesanan): Result<String> {
         return try {
             val docRef = pesananCollection.add(pesanan).await()
             Result.success(docRef.id)
-        } catch (e:  Exception) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     suspend fun updatePesananStatus(pesananId: String, status: String): Result<Unit> {
         return try {
-            pesananCollection. document(pesananId).update(
+            pesananCollection.document(pesananId).update(
                 mapOf(
                     "status" to status,
                     "updatedAt" to Timestamp.now()
@@ -254,13 +248,13 @@ class FirestoreRepository {
             val endTimestamp = Timestamp(Date(endDate))
 
             val snapshot = transaksiCollection
-                . whereGreaterThanOrEqualTo("createdAt", startTimestamp)
+                .whereGreaterThanOrEqualTo("createdAt", startTimestamp)
                 .whereLessThanOrEqualTo("createdAt", endTimestamp)
                 .get()
                 .await()
-            snapshot.documents. mapNotNull {
+            snapshot.documents.mapNotNull {
                 try {
-                    it.toObject(Transaksi::class. java)
+                    it.toObject(Transaksi::class.java)
                 } catch (e: Exception) {
                     null
                 }
@@ -270,7 +264,7 @@ class FirestoreRepository {
         }
     }
 
-    suspend fun addTransaksi(transaksi:  Transaksi): Result<String> {
+    suspend fun addTransaksi(transaksi: Transaksi): Result<String> {
         return try {
             val docRef = transaksiCollection.add(transaksi).await()
             Result.success(docRef.id)
@@ -297,12 +291,8 @@ class FirestoreRepository {
 
                 trySend(events)
             }
-
         awaitClose { listener.remove() }
     }
-
-
-
 
     fun getAllEventsFlow(): Flow<List<Event>> = callbackFlow {
         val listener = eventCollection
@@ -314,7 +304,7 @@ class FirestoreRepository {
                 val events = snapshot?.documents?.mapNotNull { doc ->
                     try {
                         doc.toObject(Event::class.java)
-                    } catch (e:  Exception) {
+                    } catch (e: Exception) {
                         null
                     }
                 }?.sortedByDescending { it.createdAt } ?: emptyList()
@@ -326,13 +316,13 @@ class FirestoreRepository {
     suspend fun addEvent(event: Event): Result<String> {
         return try {
             val docRef = eventCollection.add(event).await()
-            Result. success(docRef.id)
+            Result.success(docRef.id)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun updateEvent(event:  Event): Result<Unit> {
+    suspend fun updateEvent(event: Event): Result<Unit> {
         return try {
             eventCollection.document(event.id).set(event).await()
             Result.success(Unit)
@@ -343,9 +333,9 @@ class FirestoreRepository {
 
     suspend fun deleteEvent(eventId: String): Result<Unit> {
         return try {
-            eventCollection. document(eventId).delete().await()
+            eventCollection.document(eventId).delete().await()
             Result.success(Unit)
-        } catch (e:  Exception) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
@@ -359,14 +349,13 @@ class FirestoreRepository {
         }
     }
 
-
     // ==================== USER OPERATIONS ====================
 
     suspend fun getOrCreateUser(userId: String, email: String, name: String): User {
         return try {
             val doc = userCollection.document(userId).get().await()
             if (doc.exists()) {
-                doc.toObject(User::class. java) ?: User(id = userId, email = email, name = name)
+                doc.toObject(User::class.java) ?: User(id = userId, email = email, name = name)
             } else {
                 val newUser = User(id = userId, email = email, name = name)
                 userCollection.document(userId).set(newUser).await()
@@ -381,14 +370,14 @@ class FirestoreRepository {
         return try {
             userCollection.document(user.id).set(user).await()
             Result.success(Unit)
-        } catch (e:  Exception) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     // ==================== DASHBOARD/STATISTICS ====================
 
-    suspend fun getTotalRevenue(startDate: Long, endDate:  Long): Int {
+    suspend fun getTotalRevenue(startDate: Long, endDate: Long): Int {
         return try {
             val transaksiList = getTransaksiByDateRange(startDate, endDate)
             transaksiList.sumOf { it.total }

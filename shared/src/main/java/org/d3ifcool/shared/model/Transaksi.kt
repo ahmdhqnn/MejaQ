@@ -18,7 +18,7 @@ data class Transaksi(
     val metodePembayaran: String = "",
     val status: String = "Lunas",
     @ServerTimestamp
-    val createdAt:  Timestamp? = null  // Ubah dari Date ke Timestamp
+    val createdAt:  Timestamp? = null
 ) {
     constructor() : this(
         id = "",
