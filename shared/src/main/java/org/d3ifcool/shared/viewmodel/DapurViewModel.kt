@@ -77,7 +77,7 @@ class DapurViewModel : ViewModel() {
     }
 
     private suspend fun createTransaksiAndUpdateMenu(pesanan: Pesanan) {
-        // 1️⃣ Buat Transaksi
+
         val transaksi = Transaksi(
             pesananId = pesanan.id,
             userId = pesanan.userId,
@@ -92,7 +92,6 @@ class DapurViewModel : ViewModel() {
         )
         repository.addTransaksi(transaksi)
 
-        // 2️⃣ Update soldCount menu
         pesanan.daftarMenu.forEach { item ->
             val menu = repository.getMenuById(item.menuId)
             menu?.let {
@@ -103,12 +102,5 @@ class DapurViewModel : ViewModel() {
                 )
             }
         }
-    }
-
-    fun clearMessages() {
-        _uiState.value = _uiState.value.copy(
-            errorMessage = null,
-            successMessage = null
-        )
     }
 }

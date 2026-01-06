@@ -12,14 +12,5 @@ data class User(
     val role: String = "user",
     val photoUrl: String = "",
     @ServerTimestamp
-    val createdAt: Timestamp? = null  // Ubah dari Date ke Timestamp
-) {
-    constructor() : this(
-        id = "",
-        email = "",
-        name = "",
-        role = "user",
-        photoUrl = "",
-        createdAt = null
-    )
-}
+    val createdAt: Timestamp? = null
+)

@@ -19,19 +19,4 @@ data class Transaksi(
     val status: String = "Lunas",
     @ServerTimestamp
     val createdAt:  Timestamp? = null
-) {
-    constructor() : this(
-        id = "",
-        pesananId = "",
-        userId = "",
-        namaPelanggan = "",
-        meja = "",
-        tanggal = "",
-        waktu = "",
-        items = emptyList(),
-        total = 0,
-        metodePembayaran = "",
-        status = "Lunas",
-        createdAt = null
-    )
-}
+)

@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import org.d3ifcool.mejaq.R
 import org.d3ifcool.shared.viewmodel.EventViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
