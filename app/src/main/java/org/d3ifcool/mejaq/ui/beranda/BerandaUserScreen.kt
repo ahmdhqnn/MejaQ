@@ -29,8 +29,6 @@ fun BerandaUserScreen(
 ) {
     val uiState by eventViewModel.uiState.collectAsState()
 
-
-
     Scaffold(
         containerColor = Color(0xFFFDFDFE),
         topBar = {
@@ -51,12 +49,16 @@ fun BerandaUserScreen(
                     containerColor = Color(0xFFFDFDFE)
                 )
             )
+        },
+        bottomBar = {
+            BottomNavigationBar(navController)
         }
-    ) { innerPadding ->
+    ) { padding ->
 
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(padding)
                 .padding(horizontal = 12.dp)
         ) {
 
@@ -69,7 +71,7 @@ fun BerandaUserScreen(
             )
 
             LazyColumn(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(uiState.activeEvents) { event ->
@@ -83,8 +85,6 @@ fun BerandaUserScreen(
                     )
                 }
             }
-
-            BottomNavigationBar(navController)
         }
     }
 }
