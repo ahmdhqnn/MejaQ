@@ -24,10 +24,9 @@ import kotlinx.coroutines.delay
 @Composable
 fun SuccessScreen(navController: NavHostController) {
 
-    // Auto kembali setelah 2 detik
     LaunchedEffect(Unit) {
         delay(2000)
-        navController.popBackStack()   // kembali ke DapurMainScreen
+        navController.popBackStack()
     }
 
     Box(
