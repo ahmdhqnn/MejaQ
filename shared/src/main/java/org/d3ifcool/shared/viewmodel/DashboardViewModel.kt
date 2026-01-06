@@ -37,11 +37,10 @@ class DashboardViewModel : ViewModel() {
     init {
         observeTopMenus()
         observeRecentTransaksi()
-        observePesananSelesai() // 🔥 KUNCI
+        observePesananSelesai()
         loadActiveEvents()
     }
 
-    // 🔥 AMBIL PESANAN SELESAI SEBAGAI SUMBER DATA
     private fun observePesananSelesai() {
         viewModelScope.launch {
             repository.getCompletedPesananFlow().collect { pesananList ->
@@ -82,7 +81,6 @@ class DashboardViewModel : ViewModel() {
         }
     }
 
-    // 🔥 HITUNG GRAFIK DARI PESANAN (BUKAN TRANSAKSI)
     private fun calculateWeeklyRevenueFromPesanan(
         pesananList: List<Pesanan>
     ): List<DailyRevenue> {
@@ -109,13 +107,5 @@ class DashboardViewModel : ViewModel() {
         }
 
         return result
-    }
-
-    fun refresh() {
-        _uiState.value = _uiState.value.copy(isLoading = true)
-    }
-
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 }

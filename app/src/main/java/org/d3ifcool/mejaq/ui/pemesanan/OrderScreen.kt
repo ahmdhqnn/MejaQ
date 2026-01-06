@@ -9,13 +9,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
 import org.d3ifcool.mejaq.navigation.Screen
-import org.d3ifcool.shared.model.Menu
 import org.d3ifcool.shared.viewmodel.MenuViewModel
 import org.d3ifcool.shared.viewmodel.PesananViewModel
 
-private val Merah = Color(0xFFD61355)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,56 +84,3 @@ fun OrderScreen(
     }
 }
 
-
-@Composable
-private fun MenuCard(
-    menu: Menu,
-    viewModel: PesananViewModel
-) {
-    var qty by remember { mutableStateOf(1) }
-    var note by remember { mutableStateOf("") }
-
-    Card {
-        Column(Modifier.padding(12.dp)) {
-
-            AsyncImage(
-                model = menu.imageUrl,
-                contentDescription = menu.name,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-            )
-
-            Text(menu.name, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-            Text("Rp ${menu.price}", color = Merah)
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                IconButton(onClick = { if (qty > 1) qty-- }) { Text("-") }
-                Text(qty.toString())
-                IconButton(onClick = { qty++ }) { Text("+") }
-            }
-
-            OutlinedTextField(
-                value = note,
-                onValueChange = { note = it },
-                label = { Text("Catatan") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Button(
-                onClick = {
-                    viewModel.addToCart(menu, qty, note)
-                    qty = 1
-                    note = ""
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Merah)
-            ) {
-                Text("Tambah")
-            }
-        }
-    }
-}

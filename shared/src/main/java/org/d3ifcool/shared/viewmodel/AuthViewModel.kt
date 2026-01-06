@@ -41,11 +41,11 @@ class AuthViewModel : ViewModel() {
                 currentUser = currentUser,
                 isLoggedIn = true
             )
-            loadUserData(currentUser. uid)
+            loadUserData()
         }
     }
 
-    private fun loadUserData(userId: String) {
+    private fun loadUserData() {
         viewModelScope.launch {
             try {
                 val user = auth.currentUser
@@ -78,51 +78,11 @@ class AuthViewModel : ViewModel() {
                         isLoading = false,
                         successMessage = "Login berhasil"
                     )
-                    loadUserData(user.uid)
+                    loadUserData()
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         errorMessage = "Login gagal"
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = getErrorMessage(e)
-                )
-            }
-        }
-    }
-
-    fun signUpWithEmailPassword(email: String, password:  String, name: String, role: String = "user") {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-
-            try {
-                val result = auth.createUserWithEmailAndPassword(email, password).await()
-                val user = result. user
-
-                if (user != null) {
-                    // Create user document in Firestore
-                    val newUser = User(
-                        id = user.uid,
-                        email = email,
-                        name = name,
-                        role = role
-                    )
-                    firestoreRepository.updateUser(newUser)
-
-                    _uiState.value = _uiState.value. copy(
-                        currentUser = user,
-                        userData = newUser,
-                        isLoggedIn = true,
-                        isLoading = false,
-                        successMessage = "Registrasi berhasil"
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Registrasi gagal"
                     )
                 }
             } catch (e: Exception) {
@@ -145,61 +105,7 @@ class AuthViewModel : ViewModel() {
             isLoggedIn = true,
             isLoading = false
         )
-        loadUserData(firebaseUser.uid)
-    }
-
-    fun updateUserProfile(name: String, photoUrl: String = "") {
-        viewModelScope. launch {
-            _uiState.value = _uiState. value.copy(isLoading = true)
-
-            try {
-                val currentUserData = _uiState.value. userData
-                if (currentUserData != null) {
-                    val updatedUser = currentUserData.copy(
-                        name = name,
-                        photoUrl = photoUrl
-                    )
-                    val result = firestoreRepository.updateUser(updatedUser)
-
-                    if (result.isSuccess) {
-                        _uiState.value = _uiState.value.copy(
-                            userData = updatedUser,
-                            isLoading = false,
-                            successMessage = "Profil berhasil diupdate"
-                        )
-                    } else {
-                        _uiState.value = _uiState.value.copy(
-                            isLoading = false,
-                            errorMessage = "Gagal mengupdate profil"
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = e.message
-                )
-            }
-        }
-    }
-
-    fun resetPassword(email: String) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-
-            try {
-                auth.sendPasswordResetEmail(email).await()
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    successMessage = "Email reset password telah dikirim ke $email"
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = getErrorMessage(e)
-                )
-            }
-        }
+        loadUserData()
     }
 
     private fun getErrorMessage(exception: Exception): String {
@@ -224,14 +130,4 @@ class AuthViewModel : ViewModel() {
         _uiState.value = _uiState. value.copy(errorMessage = null)
     }
 
-    fun clearSuccess() {
-        _uiState.value = _uiState. value.copy(successMessage = null)
-    }
-
-    fun clearMessages() {
-        _uiState.value = _uiState.value.copy(
-            errorMessage = null,
-            successMessage = null
-        )
-    }
 }

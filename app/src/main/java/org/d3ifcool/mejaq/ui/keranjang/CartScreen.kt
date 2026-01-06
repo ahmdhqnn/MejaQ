@@ -1,7 +1,6 @@
 package org.d3ifcool.mejaq.ui.keranjang
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -49,7 +48,7 @@ fun CartScreen(
     val total = subtotal + pajak
 
     var showEditDialog by remember { mutableStateOf(false) }
-    var selectedIndex by remember { mutableStateOf(-1) }
+    var selectedIndex by remember { mutableIntStateOf(-1) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()

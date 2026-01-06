@@ -50,14 +50,6 @@ class MenuViewModel : ViewModel() {
         }
     }
 
-    fun selectMenu(menu: Menu) {
-        _uiState.value = _uiState.value.copy(selectedMenu = menu)
-    }
-
-    fun clearSelectedMenu() {
-        _uiState.value = _uiState.value.copy(selectedMenu = null)
-    }
-
     fun addMenu(
         name: String,
         description: String,
@@ -98,30 +90,6 @@ class MenuViewModel : ViewModel() {
         }
     }
 
-    fun updateMenu(menu: Menu, newImageUrl: String? = null) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-
-            try {
-                val updatedMenu = if (newImageUrl != null) {
-                    menu.copy(imageUrl = newImageUrl)
-                } else menu
-
-                repository.updateMenu(updatedMenu)
-
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    successMessage = "Menu berhasil diupdate"
-                )
-
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = e.message
-                )
-            }
-        }
-    }
 
     fun deleteMenu(menu: Menu) {
         viewModelScope.launch {

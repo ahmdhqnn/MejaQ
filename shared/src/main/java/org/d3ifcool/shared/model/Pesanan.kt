@@ -16,8 +16,8 @@ data class Pesanan(
     val totalHarga: Int = 0,
     val status: String = "Pending",
     @ServerTimestamp
-    val createdAt:  Timestamp? = null,  // Ubah dari Date ke Timestamp
-    val updatedAt: Timestamp? = null   // Ubah dari Long ke Timestamp
+    val createdAt:  Timestamp? = null,
+    val updatedAt: Timestamp? = null
 ) {
     constructor() : this(
         id = "",
@@ -42,6 +42,4 @@ data class ItemMenu(
     val jumlah: Int = 0,
     val harga: Int = 0,
     val subtotal: Int = 0
-) {
-    constructor() : this("", "", "", "", 0, 0, 0)
-}
+)

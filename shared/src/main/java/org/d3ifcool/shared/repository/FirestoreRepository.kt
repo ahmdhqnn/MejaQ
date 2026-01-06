@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import org.d3ifcool.shared.model.*
-import java.util.Date
 
 class FirestoreRepository {
     private val db: FirebaseFirestore = Firebase.firestore
@@ -21,7 +20,6 @@ class FirestoreRepository {
     private val eventCollection = db.collection("events")
     private val userCollection = db.collection("users")
 
-    // ==================== MENU OPERATIONS ====================
 
     fun getMenusFlow(): Flow<List<Menu>> = callbackFlow {
         val listener = menuCollection
@@ -34,7 +32,7 @@ class FirestoreRepository {
                 val menus = snapshot?.documents?.mapNotNull { doc ->
                     try {
                         doc.toObject(Menu::class.java)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                 } ?: emptyList()
@@ -43,22 +41,6 @@ class FirestoreRepository {
         awaitClose { listener.remove() }
     }
 
-    fun getAvailableMenusFlow(): Flow<List<Menu>> = callbackFlow {
-        val listener = menuCollection
-            .whereEqualTo("available", true)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                val menus = snapshot?.documents?.mapNotNull {
-                    it.toObject(Menu::class.java)
-                } ?: emptyList()
-
-                trySend(menus)
-            }
-        awaitClose { listener.remove() }
-    }
 
     fun getTopMenusFlow(limit: Int = 5): Flow<List<Menu>> = callbackFlow {
         val listener = menuCollection
@@ -72,7 +54,7 @@ class FirestoreRepository {
                 val menus = snapshot?.documents?.mapNotNull { doc ->
                     try {
                         doc.toObject(Menu::class.java)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                 } ?: emptyList()
@@ -85,7 +67,7 @@ class FirestoreRepository {
         return try {
             val doc = menuCollection.document(menuId).get().await()
             doc.toObject(Menu::class.java)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -117,8 +99,6 @@ class FirestoreRepository {
         }
     }
 
-    // ==================== PESANAN OPERATIONS ====================
-
     fun getActivePesananFlow(): Flow<List<Pesanan>> = callbackFlow {
         val listener = pesananCollection
             .whereIn("status", listOf("Pending", "Diterima"))
@@ -134,26 +114,6 @@ class FirestoreRepository {
                     ?: emptyList()
 
                 trySend(list)
-            }
-        awaitClose { listener.remove() }
-    }
-
-    fun getPendingPesananFlow(): Flow<List<Pesanan>> = callbackFlow {
-        val listener = pesananCollection
-            .whereIn("status", listOf("Pending", "Diterima"))
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                val pesananList = snapshot?.documents?.mapNotNull { doc ->
-                    try {
-                        doc.toObject(Pesanan::class.java)
-                    } catch (e: Exception) {
-                        null
-                    }
-                }?.sortedBy { it.createdAt } ?: emptyList()
-                trySend(pesananList)
             }
         awaitClose { listener.remove() }
     }
@@ -188,7 +148,7 @@ class FirestoreRepository {
                 val pesananList = snapshot?.documents?.mapNotNull { doc ->
                     try {
                         doc.toObject(Pesanan::class.java)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                 }?.sortedByDescending { it.createdAt } ?: emptyList()
@@ -220,7 +180,6 @@ class FirestoreRepository {
         }
     }
 
-    // ==================== TRANSAKSI OPERATIONS ====================
 
     fun getTransaksiFlow(): Flow<List<Transaksi>> = callbackFlow {
         val listener = transaksiCollection
@@ -233,7 +192,7 @@ class FirestoreRepository {
                 val transaksiList = snapshot?.documents?.mapNotNull { doc ->
                     try {
                         doc.toObject(Transaksi::class.java)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                 } ?: emptyList()
@@ -242,27 +201,6 @@ class FirestoreRepository {
         awaitClose { listener.remove() }
     }
 
-    suspend fun getTransaksiByDateRange(startDate: Long, endDate: Long): List<Transaksi> {
-        return try {
-            val startTimestamp = Timestamp(Date(startDate))
-            val endTimestamp = Timestamp(Date(endDate))
-
-            val snapshot = transaksiCollection
-                .whereGreaterThanOrEqualTo("createdAt", startTimestamp)
-                .whereLessThanOrEqualTo("createdAt", endTimestamp)
-                .get()
-                .await()
-            snapshot.documents.mapNotNull {
-                try {
-                    it.toObject(Transaksi::class.java)
-                } catch (e: Exception) {
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
 
     suspend fun addTransaksi(transaksi: Transaksi): Result<String> {
         return try {
@@ -273,7 +211,6 @@ class FirestoreRepository {
         }
     }
 
-    // ==================== EVENT OPERATIONS ====================
 
     fun getActiveEventsFlow(): Flow<List<Event>> = callbackFlow {
         val listener = eventCollection
@@ -304,7 +241,7 @@ class FirestoreRepository {
                 val events = snapshot?.documents?.mapNotNull { doc ->
                     try {
                         doc.toObject(Event::class.java)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                 }?.sortedByDescending { it.createdAt } ?: emptyList()
@@ -344,12 +281,10 @@ class FirestoreRepository {
         return try {
             val doc = eventCollection.document(eventId).get().await()
             doc.toObject(Event::class.java)?.copy(id = doc.id)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
-
-    // ==================== USER OPERATIONS ====================
 
     suspend fun getOrCreateUser(userId: String, email: String, name: String): User {
         return try {
@@ -361,28 +296,8 @@ class FirestoreRepository {
                 userCollection.document(userId).set(newUser).await()
                 newUser
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             User(id = userId, email = email, name = name)
-        }
-    }
-
-    suspend fun updateUser(user: User): Result<Unit> {
-        return try {
-            userCollection.document(user.id).set(user).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // ==================== DASHBOARD/STATISTICS ====================
-
-    suspend fun getTotalRevenue(startDate: Long, endDate: Long): Int {
-        return try {
-            val transaksiList = getTransaksiByDateRange(startDate, endDate)
-            transaksiList.sumOf { it.total }
-        } catch (e: Exception) {
-            0
         }
     }
 
@@ -393,7 +308,7 @@ class FirestoreRepository {
                 .get()
                 .await()
                 .size()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             0
         }
     }

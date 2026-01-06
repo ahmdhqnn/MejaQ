@@ -14,7 +14,10 @@ fun UserApp() {
 
     when {
         uiState.isLoggedIn && uiState.currentUser != null -> {
-            SetupNavGraph(user = uiState.currentUser!!)
+            SetupNavGraph(
+                user = uiState.currentUser!!,
+                authViewModel = authViewModel
+            )
         }
         else -> {
             LoginScreen(
@@ -25,4 +28,5 @@ fun UserApp() {
         }
     }
 }
+
 

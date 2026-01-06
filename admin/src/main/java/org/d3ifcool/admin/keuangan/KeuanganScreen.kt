@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.d3ifcool.admin.keuangan
 
 import androidx.compose.foundation.layout.Arrangement

@@ -25,21 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.d3ifcool.shared.model.Pesanan
-import com.google.firebase.Timestamp
-import java.text.SimpleDateFormat
-import java.util.Locale
 
-
-fun formatTimestamp(timestamp: Timestamp?): String {
-    if (timestamp == null) return "-"
-
-    val date = timestamp.toDate()
-    val formatter = SimpleDateFormat(
-        "dd MMM yyyy • HH:mm",
-        Locale("id", "ID")
-    )
-    return formatter.format(date)
-}
 
 @Composable
 fun RiwayatCard(pesanan: Pesanan) {
@@ -48,13 +34,12 @@ fun RiwayatCard(pesanan: Pesanan) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFEEF2) // MERAH MUDA PERSIS
+            containerColor = Color(0xFFFFEEF2)
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
 
-            // ===== HEADER =====
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -80,7 +65,6 @@ fun RiwayatCard(pesanan: Pesanan) {
                 }
             }
 
-            // ===== DETAIL =====
             if (expanded) {
                 Spacer(modifier = Modifier.height(8.dp))
 

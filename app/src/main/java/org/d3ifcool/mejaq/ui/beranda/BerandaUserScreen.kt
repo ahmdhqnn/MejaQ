@@ -19,17 +19,17 @@ import org.d3ifcool.mejaq.ui.riwayat.BottomNavigationBar
 import org.d3ifcool.shared.screen.UserProfileCard
 import org.d3ifcool.shared.viewmodel.EventViewModel
 import org.d3ifcool.shared.R
+import org.d3ifcool.shared.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BerandaUserScreen(
     user: FirebaseUser,
     navController: NavHostController,
+    authViewModel: AuthViewModel,
     eventViewModel: EventViewModel = viewModel()
 ) {
     val uiState by eventViewModel.uiState.collectAsState()
-
-
 
     Scaffold(
         containerColor = Color(0xFFFDFDFE),
@@ -51,16 +51,27 @@ fun BerandaUserScreen(
                     containerColor = Color(0xFFFDFDFE)
                 )
             )
+        },
+        bottomBar = {
+            BottomNavigationBar(navController)
         }
-    ) { innerPadding ->
+    ) { padding ->
 
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(padding)
                 .padding(horizontal = 12.dp)
         ) {
 
-            UserProfileCard(user)
+            UserProfileCard(
+                user = user,
+                onLogout = {
+                    authViewModel.signOut()
+                }
+            )
+
+
 
             Text(
                 text = "Selamat datang, ${user.displayName ?: "User"}!",
@@ -69,7 +80,7 @@ fun BerandaUserScreen(
             )
 
             LazyColumn(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(uiState.activeEvents) { event ->
@@ -83,8 +94,6 @@ fun BerandaUserScreen(
                     )
                 }
             }
-
-            BottomNavigationBar(navController)
         }
     }
 }

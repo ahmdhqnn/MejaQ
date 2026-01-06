@@ -89,30 +89,6 @@ class EventViewModel : ViewModel() {
         }
     }
 
-    fun updateEvent(event: Event, newImageUrl: String? = null) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-
-            try {
-                val updatedEvent = if (newImageUrl != null) {
-                    event.copy(imageUrl = newImageUrl)
-                } else event
-
-                repository.updateEvent(updatedEvent)
-
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    successMessage = "Event berhasil diupdate"
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = e.message
-                )
-            }
-        }
-    }
-
     fun toggleEventStatus(event: Event) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
@@ -167,10 +143,6 @@ class EventViewModel : ViewModel() {
                 isLoading = false
             )
         }
-    }
-
-    fun clearSelectedEvent() {
-        _uiState.value = _uiState.value.copy(selectedEvent = null)
     }
 
     fun clearMessages() {

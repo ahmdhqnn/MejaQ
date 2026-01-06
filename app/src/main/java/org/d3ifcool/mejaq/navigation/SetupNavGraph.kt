@@ -13,13 +13,16 @@ import org.d3ifcool.mejaq.ui.keranjang.CartScreen
 import org.d3ifcool.mejaq.ui.keranjang.SuccessScreen
 import org.d3ifcool.mejaq.ui.pemesanan.*
 import org.d3ifcool.mejaq.ui.riwayat.RiwayatScreen
+import org.d3ifcool.shared.viewmodel.AuthViewModel
 import org.d3ifcool.shared.viewmodel.PesananViewModel
 
 @Composable
 fun SetupNavGraph(
     user: FirebaseUser,
+    authViewModel: AuthViewModel,
     navController: NavHostController = rememberNavController()
-) {
+)
+ {
 
     val pesananViewModel: PesananViewModel = viewModel()
 
@@ -29,8 +32,13 @@ fun SetupNavGraph(
     ) {
 
         composable(Screen.Home.route) {
-            BerandaUserScreen(user, navController)
+            BerandaUserScreen(
+                user = user,
+                navController = navController,
+                authViewModel = authViewModel
+            )
         }
+
 
         composable(Screen.QrCodeScanner.route) {
             QrCodeScannerScreen(navController)

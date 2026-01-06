@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import org.d3ifcool.shared.model.ItemMenu
 import org.d3ifcool.shared.model.Menu
 import org.d3ifcool.shared.model.Pesanan
-import org.d3ifcool.shared.model.Transaksi
 import org.d3ifcool.shared.repository.FirestoreRepository
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -48,6 +47,8 @@ class PesananViewModel : ViewModel() {
 
 
     fun addToCart(menu: Menu, qty: Int, note: String) {
+        if (!menu.available) return
+
         _cartItems.add(
             ItemMenu(
                 menuId = menu.id,
@@ -62,25 +63,12 @@ class PesananViewModel : ViewModel() {
     }
 
 
+
     fun clearCart() {
         _cartItems.clear()
     }
 
-    // =====================================================
-    // 📥 LOAD PESANAN
-    // =====================================================
 
-    fun loadPendingPesanan() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            firestoreRepository.getPendingPesananFlow().collect { pesananList ->
-                _uiState.value = _uiState.value.copy(
-                    pendingPesanan = pesananList,
-                    isLoading = false
-                )
-            }
-        }
-    }
 
     fun loadCompletedPesanan() {
         viewModelScope.launch {
@@ -102,17 +90,6 @@ class PesananViewModel : ViewModel() {
         }
     }
 
-    // =====================================================
-    // 🎯 SELECT PESANAN
-    // =====================================================
-
-    fun selectPesanan(pesanan: Pesanan) {
-        _uiState.value = _uiState.value.copy(selectedPesanan = pesanan)
-    }
-
-    fun clearSelectedPesanan() {
-        _uiState.value = _uiState.value.copy(selectedPesanan = null)
-    }
 
     fun createPesanan(
         userId: String,
@@ -193,64 +170,5 @@ class PesananViewModel : ViewModel() {
         } else {
             _cartItems.add(item)
         }
-    }
-
-
-
-    fun updatePesananStatus(pesananId: String, newStatus: String) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-
-            try {
-                val result = firestoreRepository.updatePesananStatus(pesananId, newStatus)
-
-                if (result.isSuccess) {
-                    if (newStatus == "Selesai") {
-                        val pesanan = _uiState.value.pendingPesanan.find { it.id == pesananId }
-                            ?: _uiState.value.selectedPesanan
-
-                        pesanan?.let { createTransaksiFromPesanan(it) }
-                    }
-
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        successMessage = "Status pesanan berhasil diupdate"
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Gagal mengupdate status"
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = e.message
-                )
-            }
-        }
-    }
-
-    private suspend fun createTransaksiFromPesanan(pesanan: Pesanan) {
-        val transaksi = Transaksi(
-            pesananId = pesanan.id,
-            userId = pesanan.userId,
-            namaPelanggan = pesanan.namaPelanggan,
-            meja = pesanan.meja,
-            tanggal = pesanan.tanggal,
-            waktu = pesanan.waktu,
-            items = pesanan.daftarMenu,
-            total = pesanan.totalHarga,
-            metodePembayaran = "Cash",
-            status = "Lunas"
-        )
-        firestoreRepository.addTransaksi(transaksi)
-    }
-
-    fun clearMessages() {
-        _uiState.value = _uiState.value.copy(
-            errorMessage = null,
-            successMessage = null
-        )
     }
 }
