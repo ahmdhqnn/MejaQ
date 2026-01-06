@@ -282,7 +282,11 @@ fun MenuButton(
 }
 
 @Composable
-fun GrafikPenjualan(weeklyRevenue: List<org.d3ifcool.shared.viewmodel.DailyRevenue>) {
+fun GrafikPenjualan(
+    weeklyRevenue: List<org.d3ifcool.shared.viewmodel.DailyRevenue>
+) {
+    val chartHeight = 100.dp
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -294,71 +298,79 @@ fun GrafikPenjualan(weeklyRevenue: List<org.d3ifcool.shared.viewmodel.DailyReven
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             color = Color.Black
         )
-        Spacer(modifier = Modifier. height(16.dp))
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val maxRevenue = weeklyRevenue.maxOfOrNull { it.revenue }?.takeIf { it > 0 } ?: 1
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.Bottom
         ) {
 
-            val maxRevenue = weeklyRevenue.maxOfOrNull { it.revenue } ?: 1
-
-            if (weeklyRevenue.isEmpty()) {
-
-                val defaultLabels = listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
-                defaultLabels.forEach { label ->
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement. Bottom,
-                        modifier = Modifier. height(120.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(24.dp)
-                                .height(10.dp)
-                                .background(
-                                    Color(0xFFE0E0E0),
-                                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
-                                )
-                        )
-                        Spacer(modifier = Modifier. height(4.dp))
-                        Text(label, fontSize = 10.sp, color = Color.Gray)
-                    }
+            val data = weeklyRevenue.ifEmpty {
+                listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min").map {
+                    org.d3ifcool.shared.viewmodel.DailyRevenue(it, 0)
                 }
-            } else {
-                weeklyRevenue.forEach { daily ->
-                    val fraction = if (maxRevenue > 0) {
-                        (daily.revenue. toFloat() / maxRevenue).coerceIn(0.05f, 1f)
-                    } else 0.05f
+            }
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Bottom,
-                        modifier = Modifier.height(120.dp)
+            data.forEach { daily ->
+
+                val barHeight =
+                    (daily.revenue.toFloat() / maxRevenue)
+                        .coerceIn(0.05f, 1f)
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom
+                ) {
+
+                    Box(
+                        modifier = Modifier
+                            .height(chartHeight)
+                            .width(24.dp),
+                        contentAlignment = Alignment.BottomCenter
                     ) {
                         Box(
                             modifier = Modifier
-                                .width(24.dp)
-                                .fillMaxHeight(fraction)
+                                .fillMaxWidth()
+                                .height(chartHeight * barHeight)
                                 .background(
                                     Color(0xFF7E57C2),
-                                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+                                    shape = RoundedCornerShape(
+                                        topStart = 6.dp,
+                                        topEnd = 6.dp
+                                    )
                                 )
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(daily.dayName, fontSize = 10.sp, color = Color.Gray)
                     }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = daily.dayName,
+                        fontSize = 10.sp,
+                        color = Color.Gray
+                    )
                 }
             }
         }
     }
 }
 
+
+
 @Composable
-fun StatistikMenuFavorit(topMenus:  List<org.d3ifcool.shared.model.Menu>) {
+fun StatistikMenuFavorit(
+    topMenus: List<org.d3ifcool.shared.model.Menu>
+) {
+
+    val filteredMenus = topMenus
+        .filter { it.soldCount > 0 }
+        .sortedByDescending { it.soldCount }
+        .take(3)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -370,16 +382,17 @@ fun StatistikMenuFavorit(topMenus:  List<org.d3ifcool.shared.model.Menu>) {
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             color = Color.Black
         )
+
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (topMenus.isEmpty()) {
+        if (filteredMenus.isEmpty()) {
             Text(
-                text = "Belum ada data menu",
-                style = MaterialTheme. typography.bodyMedium,
+                text = "Belum ada menu terjual",
+                style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray
             )
         } else {
-            topMenus.forEachIndexed { index, menu ->
+            filteredMenus.forEachIndexed { index, menu ->
                 MenuItemRow(
                     rank = index + 1,
                     name = menu.name,
@@ -389,6 +402,7 @@ fun StatistikMenuFavorit(topMenus:  List<org.d3ifcool.shared.model.Menu>) {
         }
     }
 }
+
 
 @Composable
 fun MenuItemRow(rank: Int, name: String, sold: Int) {
