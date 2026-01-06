@@ -47,6 +47,8 @@ class PesananViewModel : ViewModel() {
 
 
     fun addToCart(menu: Menu, qty: Int, note: String) {
+        if (!menu.available) return
+
         _cartItems.add(
             ItemMenu(
                 menuId = menu.id,
@@ -59,6 +61,7 @@ class PesananViewModel : ViewModel() {
             )
         )
     }
+
 
 
     fun clearCart() {

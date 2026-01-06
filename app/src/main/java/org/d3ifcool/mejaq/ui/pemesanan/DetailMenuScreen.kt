@@ -79,20 +79,26 @@ fun DetailMenuScreen(
 
             Button(
                 onClick = {
-                    if (!isAdded) {
+                    if (menu.available && !isAdded) {
                         pesananViewModel.addToCart(menu, qty, note)
                         isAdded = true
                         navController.navigate(Screen.Cart.route)
                     }
                 },
+                enabled = menu.available,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .height(52.dp),
                 shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Merah)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (menu.available) Merah else Color.Gray
+                )
             ) {
-                Text("Tambah ke Keranjang", color = Color.White)
+                Text(
+                    text = if (menu.available) "Tambah ke Keranjang" else "Menu Habis",
+                    color = Color.White
+                )
             }
         }
     ) { padding ->
@@ -123,7 +129,6 @@ fun DetailMenuScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // ===== QTY CONTROL =====
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,

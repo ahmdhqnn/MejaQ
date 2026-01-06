@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import org.d3ifcool.shared.model.Menu
 
@@ -18,10 +19,15 @@ fun MenuGridItem(
     onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = menu.available) { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = if (menu.available) Color.White else Color(0xFFF2F2F2)
+        )
     ) {
         Column {
+
             AsyncImage(
                 model = menu.imageUrl,
                 contentDescription = menu.name,
@@ -33,10 +39,25 @@ fun MenuGridItem(
 
             Column(Modifier.padding(12.dp)) {
                 Text(menu.name, fontWeight = FontWeight.Bold)
-                Text("Rp ${menu.price}", color = Color(0xFFD61355))
+
+                Text(
+                    "Rp ${menu.price}",
+                    color = Color(0xFFD61355)
+                )
+
+                if (!menu.available) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Habis",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
 }
+
 
 
