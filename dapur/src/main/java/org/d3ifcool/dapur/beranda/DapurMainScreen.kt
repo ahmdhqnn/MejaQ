@@ -2,6 +2,7 @@ package org.d3ifcool.dapur.beranda
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,13 +51,17 @@ import org.d3ifcool.dapur.navigation.Screen
 import org.d3ifcool.dapur.theme.MejaQTheme
 import org.d3ifcool.shared.R
 import org.d3ifcool.shared.model.Pesanan
+import org.d3ifcool.shared.viewmodel.DapurViewModel
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DapurMainScreen(
     navController: NavHostController,
-    viewModel: MainViewModel = viewModel()
+    viewModel: DapurViewModel = viewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         containerColor = Color(0xFFFDFDFE),
         topBar = {
@@ -82,7 +88,6 @@ fun DapurMainScreen(
                     titleContentColor = Color(0xFF6A1B9A),
                 )
             )
-
         }
     ) { innerPadding ->
 
@@ -92,27 +97,51 @@ fun DapurMainScreen(
                 .fillMaxSize()
         ) {
 
-            // list pesanan
-            LazyColumn(
+            Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
-                contentPadding = PaddingValues(8.dp)
+                    .fillMaxWidth()
             ) {
-                items(viewModel.data) { pesanan ->
-                    PesananCard(
-                        pesanan = pesanan,
-                        navController = navController,
-                        onPesananSelesai = {
-                            navController.navigate(Screen.Success.route)
+
+                if (uiState.pesananAktif.isEmpty()) {
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Tidak ada pesanan masuk",
+                            fontSize = 16.sp,
+                            color = Color.Gray
+                        )
+                    }
+
+                } else {
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(8.dp)
+                    ) {
+                        items(uiState.pesananAktif) { pesanan ->
+                            PesananCard(
+                                pesanan = pesanan,
+                                onConfirm = { newStatus ->
+                                    viewModel.updateStatusPesanan(pesanan, newStatus)
+                                    if (newStatus == "Selesai") {
+                                        navController.navigate(Screen.Success.route)
+                                    }
+                                }
+                            )
                         }
-                    )
+                    }
                 }
             }
 
+
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Navbar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -146,27 +175,41 @@ fun DapurMainScreen(
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PesananCard(
     pesanan: Pesanan,
-    navController: NavHostController,
-    onPesananSelesai: (Pesanan) -> Unit
+    onConfirm: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
-
     var statusExpanded by remember { mutableStateOf(false) }
-    val statusOptions = listOf("Pending", "Ready")
-    var selectedStatus by remember { mutableStateOf(pesanan.status) }
+
+    var selectedStatus by remember(pesanan.id) {
+        mutableStateOf(pesanan.status)
+    }
+
+    val statusOptions = when (pesanan.status) {
+        "Pending" -> listOf("Pending", "Diterima")
+        "Diterima" -> listOf("Diterima", "Selesai")
+        else -> listOf("Selesai")
+    }
+
+
+    val cardColor = when (pesanan.status) {
+        "Diterima" -> Color(0xFFFFF3CD)
+        "Selesai" -> Color(0xFFD4EDDA)
+        else -> Color(0xFFFFEEF2)
+    }
+
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEEF2))
-    ) {
+        colors = CardDefaults.cardColors(containerColor = cardColor)
+    )
+    {
         Column(modifier = Modifier.padding(12.dp)) {
 
             Row(
@@ -174,7 +217,10 @@ fun PesananCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text(text = pesanan.meja, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Meja ${pesanan.meja} - ${pesanan.namaPelanggan}",
+                        fontWeight = FontWeight.Bold
+                    )
                     Text(
                         text = "${pesanan.tanggal} • ${pesanan.waktu}",
                         fontSize = 12.sp,
@@ -191,13 +237,13 @@ fun PesananCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 pesanan.daftarMenu.forEach { item ->
-                    Column(modifier = Modifier.fillMaxWidth()) {
+                    Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = item.nama, fontWeight = FontWeight.SemiBold)
-                            Text(text = "x${item.jumlah}")
+                            Text(item.nama, fontWeight = FontWeight.SemiBold)
+                            Text("x${item.jumlah}")
                         }
 
                         if (item.catatan.isNotBlank()) {
@@ -205,7 +251,7 @@ fun PesananCard(
                                 text = "• ${item.catatan}",
                                 fontSize = 12.sp,
                                 color = Color(0xFF7A7A7A),
-                                modifier = Modifier.padding(start = 4.dp, top = 2.dp, bottom = 6.dp)
+                                modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
                             )
                         }
                     }
@@ -217,21 +263,20 @@ fun PesananCard(
                     expanded = statusExpanded,
                     onExpandedChange = { statusExpanded = !statusExpanded }
                 ) {
-
                     OutlinedTextField(
                         value = selectedStatus,
                         onValueChange = {},
-                        readOnly = true,
+                        readOnly = pesanan.status == "Selesai",
+                        enabled = pesanan.status != "Selesai",
                         label = { Text("Status Pesanan") },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = statusExpanded
-                            )
+                            if (pesanan.status != "Selesai") {
+                                ExposedDropdownMenuDefaults.TrailingIcon(statusExpanded)
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .menuAnchor()
-
                     )
 
                     ExposedDropdownMenu(
@@ -243,7 +288,6 @@ fun PesananCard(
                                 text = { Text(status) },
                                 onClick = {
                                     selectedStatus = status
-                                    pesanan.status = status
                                     statusExpanded = false
                                 }
                             )
@@ -270,23 +314,25 @@ fun PesananCard(
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = { Text("Konfirmasi") },
-            text = { Text("Apakah pesanan benar sudah selesai?") },
+            text = { Text("Apakah benar ingin mengupdate status?") },
             confirmButton = {
                 TextButton(onClick = {
                     showDialog = false
-                    onPesananSelesai(pesanan)
+                    onConfirm(selectedStatus)
                 }) {
-                    Text("Selesai")
+                    Text("Ya")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Belum")
+                    Text("Tidak")
                 }
             }
         )
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable

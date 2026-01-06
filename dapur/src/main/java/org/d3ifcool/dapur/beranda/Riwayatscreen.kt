@@ -1,13 +1,11 @@
 package org.d3ifcool.dapur.beranda
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -19,13 +17,16 @@ import androidx.navigation.NavHostController
 import org.d3ifcool.dapur.navigation.Screen
 import org.d3ifcool.shared.R
 import org.d3ifcool.shared.model.Pesanan
+import org.d3ifcool.shared.viewmodel.DapurViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RiwayatScreen(
     navController: NavHostController,
-    viewModel: MainViewModel = viewModel()
+    viewModel: DapurViewModel = viewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         containerColor = Color(0xFFFDFDFE),
         topBar = {
@@ -35,7 +36,7 @@ fun RiwayatScreen(
                         text = "Riwayat",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
+                        color = Color.Black
                     )
                 },
                 actions = {
@@ -48,13 +49,11 @@ fun RiwayatScreen(
                     )
                 },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = Color(0xFFFDFDFE),
-                    titleContentColor = Color(0xFF6A1B9A),
+                    containerColor = Color(0xFFFDFDFE)
                 )
             )
-
         }
-    )  { innerPadding ->
+    ) { innerPadding ->
 
         Column(
             modifier = Modifier
@@ -62,21 +61,20 @@ fun RiwayatScreen(
                 .fillMaxSize()
         ) {
 
-            // --- LIST RIWAYAT ---
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
                 contentPadding = PaddingValues(8.dp)
             ) {
-                items(viewModel.data) { pesanan ->
+                items(uiState.riwayatPesanan) { pesanan ->
                     RiwayatCard(pesanan)
                 }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // --- TOMBOL GAMBAR BAWAH ---
+            // ===== NAVBAR (SAMA PERSIS) =====
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -118,9 +116,7 @@ fun RiwayatCard(pesanan: Pesanan) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFEEF2)
-        )
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEEF2))
     ) {
         Column(Modifier.padding(12.dp)) {
 
@@ -129,7 +125,10 @@ fun RiwayatCard(pesanan: Pesanan) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text(pesanan.meja, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Meja ${pesanan.meja} - ${pesanan.namaPelanggan}",
+                        fontWeight = FontWeight.Bold
+                    )
                     Text(
                         "${pesanan.tanggal} • ${pesanan.waktu}",
                         fontSize = 12.sp,
@@ -143,7 +142,6 @@ fun RiwayatCard(pesanan: Pesanan) {
 
             if (expanded) {
                 Spacer(Modifier.height(8.dp))
-
                 pesanan.daftarMenu.forEach { item ->
                     Row(
                         Modifier.fillMaxWidth(),
@@ -157,3 +155,4 @@ fun RiwayatCard(pesanan: Pesanan) {
         }
     }
 }
+
