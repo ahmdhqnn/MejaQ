@@ -19,12 +19,14 @@ import org.d3ifcool.mejaq.ui.riwayat.BottomNavigationBar
 import org.d3ifcool.shared.screen.UserProfileCard
 import org.d3ifcool.shared.viewmodel.EventViewModel
 import org.d3ifcool.shared.R
+import org.d3ifcool.shared.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BerandaUserScreen(
     user: FirebaseUser,
     navController: NavHostController,
+    authViewModel: AuthViewModel,
     eventViewModel: EventViewModel = viewModel()
 ) {
     val uiState by eventViewModel.uiState.collectAsState()
@@ -62,7 +64,14 @@ fun BerandaUserScreen(
                 .padding(horizontal = 12.dp)
         ) {
 
-            UserProfileCard(user)
+            UserProfileCard(
+                user = user,
+                onLogout = {
+                    authViewModel.signOut()
+                }
+            )
+
+
 
             Text(
                 text = "Selamat datang, ${user.displayName ?: "User"}!",

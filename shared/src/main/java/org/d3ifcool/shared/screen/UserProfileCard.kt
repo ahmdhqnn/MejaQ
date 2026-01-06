@@ -30,6 +30,7 @@ import org.d3ifcool.shared.R
 @Composable
 fun UserProfileCard(
     user: FirebaseUser,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -42,7 +43,6 @@ fun UserProfileCard(
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        // FOTO PROFIL (KLIK = DROPDOWN)
         Box {
             AsyncImage(
                 model = ImageRequest.Builder(context)
@@ -64,11 +64,12 @@ fun UserProfileCard(
                     text = { Text(stringResource(R.string.logout)) },
                     onClick = {
                         expanded = false
-                        AuthUI.getInstance().signOut(context)
+                        onLogout()
                     }
                 )
             }
         }
     }
 }
+
 
