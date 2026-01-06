@@ -29,9 +29,7 @@ fun BerandaUserScreen(
 ) {
     val uiState by eventViewModel.uiState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        eventViewModel.loadActiveEvents()
-    }
+
 
     Scaffold(
         containerColor = Color(0xFFFDFDFE),
