@@ -43,6 +43,8 @@ import org.d3ifcool.admin.R
 import org.d3ifcool.admin.navigation.Screen
 import org.d3ifcool.admin.ui.theme.MejaQTheme
 import org.d3ifcool.shared.viewmodel.AuthViewModel
+import androidx.compose.ui.platform.testTag
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +58,6 @@ fun LoginAdminScreen(
 
     val uiState by authViewModel.uiState.collectAsState()
 
-    // Navigate to Home when logged in
     LaunchedEffect(uiState. isLoggedIn) {
         if (uiState.isLoggedIn) {
             navController.navigate(Screen.Home.route) {
@@ -65,7 +66,6 @@ fun LoginAdminScreen(
         }
     }
 
-    // Show error message
     LaunchedEffect(uiState. errorMessage) {
         uiState.errorMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -113,9 +113,12 @@ fun LoginAdminScreen(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = ! uiState.isLoading
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("admin_email"),
+                    enabled = !uiState.isLoading
                 )
+
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -123,10 +126,13 @@ fun LoginAdminScreen(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("Password") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("admin_password"),
                     visualTransformation = PasswordVisualTransformation(),
-                    enabled = !uiState. isLoading
+                    enabled = !uiState.isLoading
                 )
+
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -144,7 +150,8 @@ fun LoginAdminScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
+                        .height(52.dp)
+                        .testTag("admin_login_button"),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFD61355)
                     ),
@@ -152,8 +159,10 @@ fun LoginAdminScreen(
                 ) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = Color. White
+                            modifier = Modifier
+                                .size(24.dp)
+                                .testTag("admin_loading"),
+                            color = Color.White
                         )
                     } else {
                         Text(

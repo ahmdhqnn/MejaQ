@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font. FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -145,6 +146,7 @@ fun BerandaContent(
         item {
             Text(
                 text = "Selamat datang, $userName!",
+                modifier = Modifier.testTag("admin_home_title"),
                 style = MaterialTheme.typography.titleLarge. copy(fontWeight = FontWeight.Bold),
                 color = Color. Black
             )
